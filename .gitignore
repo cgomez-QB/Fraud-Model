@@ -1,0 +1,28 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
+
+# Conda / poetry
+.conda/
+.conda_env/
+
+# Archivos de entorno
+.env
+.env.*
+environment.yml
+environment.yaml
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Datos para los analisis 
+Data/
+data/
+
+# Tipos de archivos 
+*.txt
+*.csv
+*.json
