@@ -2,8 +2,9 @@ import pandas as pd
 import numpy as np
 from inference.artifacts import get_shrinkage
 from inference.binning import *
+from inference.user_agent_parser import parse_user_agent
 
-def bank_name_shrinkage(bank_name: str) :
+def bank_name_shrinkage(bank_name) :
     """
     Aplica el shrinkage correspondiente al banco del usuario.
 
@@ -20,7 +21,7 @@ def bank_name_shrinkage(bank_name: str) :
     """
     return get_shrinkage("bank_name", bank_name, default=1.0)
 
-def os_family_shrinkage(os_family: str):
+def os_family_shrinkage(user_agent):
     """
     Aplica el shrinkage correspondiente a la familia del sistema operativo del usuario.
 
@@ -35,6 +36,7 @@ def os_family_shrinkage(os_family: str):
         Valor de shrinkage asociado a la familia del sistema operativo.  
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
+    os_family = user_agent_extraction(user_agent)["os_family"]
     return get_shrinkage("os_family", os_family, default=1.0)
 
 def tramo_days_shrinkage(tramo_days):
@@ -70,10 +72,10 @@ def tramo_days_shrinkage(days):
         Valor de shrinkage asociado al tramo de días de devolución de prestamos.  
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    tramo_days = get_tramo_days(days)
+    tramo_days = get_tramos_days(days)
     return get_shrinkage("tramos_days", tramo_days, default=1.0)
 
-def tramo_amount_2_shrinkage(tramo_amount_2: str) -> float:
+def tramo_amount_2_shrinkage(tramo_amount_2):
     """
     Aplica el shrinkage correspondiente al tramo del importe solicitado.
 
@@ -90,7 +92,7 @@ def tramo_amount_2_shrinkage(tramo_amount_2: str) -> float:
     """
     return get_shrinkage("tramo_amount_2", tramo_amount_2, default=1.0)
 
-def ip_asn_flag_shrinkage(ip_asn_flag: str) -> float:
+def ip_asn_flag_shrinkage(ip_asn_flag):
     """
     Aplica el shrinkage correspondiente al flag de ASN de la IP del usuario.
 
@@ -107,7 +109,7 @@ def ip_asn_flag_shrinkage(ip_asn_flag: str) -> float:
     """
     return get_shrinkage("ip_asn_flag", ip_asn_flag, default=1.0)
 
-def ip_city_flag_shrinkage(ip_city_flag: str) -> float:
+def ip_city_flag_shrinkage(ip_city_flag):
     """
     Aplica el shrinkage correspondiente al flag de ciudad de la IP del usuario.
 
@@ -125,7 +127,7 @@ def ip_city_flag_shrinkage(ip_city_flag: str) -> float:
     return get_shrinkage("ip_city_flag", ip_city_flag, default=1.0)
 
 
-def tramo_platforms_shrinkage(tramo_platforms: str) -> float:
+def tramo_platforms_shrinkage(tramo_platforms):
     """
     Aplica el shrinkage correspondiente al tramo de plataformas utilizadas por el usuario.
 
@@ -143,7 +145,7 @@ def tramo_platforms_shrinkage(tramo_platforms: str) -> float:
     return get_shrinkage("tramo_platforms", tramo_platforms, default=1.0)
 
 
-def tramo_platforms_network_tools_shrinkage(tramo_platforms_network_tools: str) -> float:
+def tramo_platforms_network_tools_shrinkage(tramo_platforms_network_tools):
     """
     Aplica el shrinkage correspondiente al uso de herramientas de red en plataformas.
 
@@ -165,7 +167,7 @@ def tramo_platforms_network_tools_shrinkage(tramo_platforms_network_tools: str) 
     )
 
 
-def tramo_good_behavioral_apps_shrinkage(tramo_good_behavioral_apps: str) -> float:
+def tramo_good_behavioral_apps_shrinkage(tramo_good_behavioral_apps):
     """
     Aplica el shrinkage correspondiente al comportamiento positivo en apps.
 
@@ -187,7 +189,7 @@ def tramo_good_behavioral_apps_shrinkage(tramo_good_behavioral_apps: str) -> flo
     )
 
 
-def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial: str) -> float:
+def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial):
     """
     Aplica el shrinkage correspondiente al uso comercial de plataformas.
 
@@ -208,4 +210,20 @@ def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial: str) -> float
         default=1.0,
     )
 
+def user_agent_extraction(user_agent):
+    """
+    Funcion encargada de extraer los datos relevantes del user agent.
 
+    Parameters
+    ----------
+    user_agent : str
+        user agent del usuario.
+
+    Returns
+    -------
+    dict
+        Valor de la infformacion extraida del user agent.
+        
+    """
+    user_agent_info = parse_user_agent(user_agent)
+    return user_agent_info

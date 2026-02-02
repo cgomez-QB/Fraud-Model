@@ -18,7 +18,7 @@ _ARTIFACTS: Optional[Artifacts] = None
 def _data_artifacts_dir():
     # Ajusta esto a donde realmente empaquetes los CSV para Lambda.
     # Recomendación: meterlos dentro de src/inference/artifacts_data/
-    print("valor de la ruta padre", Path(__file__).resolve().parent.parent)
+    
     return Path(__file__).resolve().parent.parent / "data/datos"
 
 
@@ -52,13 +52,16 @@ def load_artifacts():
             "bank_name": base / "bank_name_shrinkage.csv",
             "tramo_amount_2": base / "tramo_amount_2_shrinkage.csv",
             "tramo_days": base / "tramo_days_shrinkage.csv",
+            "ip_asn_org": base / "ip_asnflag.csv",
             "ip_asn_flag": base / "ip_asn_flag_shrinkage.csv",
+            "ip_city": base / "ip_city_flag.csv",
             "ip_city_flag": base / "ip_city_flag_shrinkage.csv",
             "os_family": base / "os_family_shrinkage.csv",
             "tramo_platforms": base / "tramo_platforms_shrinkage.csv",
             "tramo_platforms_network_tools": base / "tramo_platforms_network_tools_shrinkage.csv",
             "tramo_good_behavioral_apps": base / "tramo_good_behavioral_apps_shrinkage.csv",
             "tramo_platforms_comercial": base / "tramo_platforms_comercial_shrinkage.csv",
+
         }
 
         shrinkage: Dict[str, Dict[str, float]] = {
