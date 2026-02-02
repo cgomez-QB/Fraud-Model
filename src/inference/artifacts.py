@@ -75,3 +75,7 @@ def load_artifacts():
 def get_shrinkage(feature: str, key: str, default: float = 1.0):
     art = load_artifacts()
     return float(art.shrinkage.get(feature, {}).get(key, default))
+
+def get_ip_flag(feature, key, default="NORMAL"):
+    art = load_artifacts()
+    return art.shrinkage.get(feature, {}).get(key, default)

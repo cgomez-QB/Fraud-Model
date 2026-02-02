@@ -3,7 +3,7 @@ from typing import Optional
 from pathlib import Path
 import geoip2.database
 
-@dataClass(frozen=True)
+@dataclass(frozen=True)
 class IpInfo:
 
     reader_city: Optional[geoip2.database.Reader]
@@ -24,18 +24,18 @@ def load_databases():
         IpInfo: Dataclass que contiene las BBDD para hacer consultas sobre la ciudad origeny el ASN de la ip del usuario.
     """
 
-    db_city_path = Path(__file__).resolve().parent.parent / "data/GeoLite2-City.mmdb"
-    db_asn_path = Path(__file__).resolve().parent.parent / "data/GeoLite2-ASN.mmdb"
+    db_city_path = Path(__file__).resolve().parent.parent / "data/datos/GeoLite2-City.mmdb"
+    db_asn_path = Path(__file__).resolve().parent.parent / "data/datos/GeoLite2-ASN.mmdb"
 
     reader_city = geoip2.database.Reader(db_city_path)
     reader_asn = geoip2.database.Reader(db_asn_path)
     return IpInfo(reader_city = reader_city, reader_asn = reader_asn)
 
 
-def load_databases():
-"""
-Funcion encargada de inicializar la dataclass IpInfo.
-"""
+def get_info_geoip():
+    """
+    Funcion encargada de inicializar la dataclass IpInfo.
+    """
     global _IP_INFO 
 
     if _IP_INFO is None:
@@ -48,10 +48,13 @@ def get_asn_org(ip):
     """
     Funcion encargada de obtener el ASN de la ip del usuario.
     """
-    ip_info = load_databases()
+    ip_info = get_info_geoip()
     return ip_info.reader_asn.asn(ip).autonomous_system_organization
+
 
 def get_city(ip):
     """
-    Funcion encargada de obtener la ciudad de la ip del usuario.
+    Funcion encargada de obtener la ciudad de la ip del usuari o.
     """
+    ip_info = get_info_geoip()
+    return ip_info.reader_city.city(ip).subdivisions.most_specific.name

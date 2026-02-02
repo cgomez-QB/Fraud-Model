@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 from inference.artifacts import get_shrinkage
-from inference.binning import *
+from inference.binning import get_tramos_days, get_tramos_amount 
 from inference.user_agent_parser import parse_user_agent
+from inference.ip_info import get_asn_org, get_city
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -39,23 +40,6 @@ def os_family_shrinkage(user_agent):
     os_family = user_agent_extraction(user_agent)["os_family"]
     return get_shrinkage("os_family", os_family, default=1.0)
 
-def tramo_days_shrinkage(tramo_days):
-    """
-    Aplica el shrinkage correspondiente al tramos de días en los cuales el usuario tiene pensado devolver los prestamos en el plazo de 2 años.
-
-    Parameters
-    ----------
-    tramo_days : str
-        Tramos de días en los cuales el usuario tiene pensado devolver los prestamos.
-
-    Returns
-    -------
-    float
-        Valor de shrinkage asociado al tramo de días de devolución de prestamos.  
-        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
-    """
-
-    return get_shrinkage("tramos_days", tramo_days, default=1.0)
 
 def tramo_days_shrinkage(days):
     """
@@ -92,7 +76,7 @@ def tramo_amount_2_shrinkage(tramo_amount_2):
     """
     return get_shrinkage("tramo_amount_2", tramo_amount_2, default=1.0)
 
-def ip_asn_flag_shrinkage(ip_asn_flag):
+def ip_asn_flag_shrinkage(ip):
     """
     Aplica el shrinkage correspondiente al flag de ASN de la IP del usuario.
 
@@ -105,8 +89,10 @@ def ip_asn_flag_shrinkage(ip_asn_flag):
     -------
     float
         Valor de shrinkage asociado al flag de ASN.
-        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
     """
+    asn_org = get_asn_org(ip)
+    ip_asn_flag = get_ip_flag("ip_asn_org", asn_org, default="NORMAL")
     return get_shrinkage("ip_asn_flag", ip_asn_flag, default=1.0)
 
 def ip_city_flag_shrinkage(ip_city_flag):
@@ -124,6 +110,9 @@ def ip_city_flag_shrinkage(ip_city_flag):
         Valor de shrinkage asociado al flag de ciudad.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
+
+    city = get_city(ip)
+    ip_city_flag = get_ip_flag("ip_city", city, default="NORMAL")
     return get_shrinkage("ip_city_flag", ip_city_flag, default=1.0)
 
 
