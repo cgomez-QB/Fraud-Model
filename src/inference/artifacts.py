@@ -35,7 +35,7 @@ def _load_csv_map(path: Path) -> Dict[str, float]:
             if not row:
                 continue
             key = str(row[0]).strip()
-            val = float(row[1])
+            val = row[1]
             mapping[key] = val
     return mapping
 
@@ -52,7 +52,7 @@ def load_artifacts():
             "bank_name": base / "bank_name_shrinkage.csv",
             "tramo_amount_2": base / "tramo_amount_2_shrinkage.csv",
             "tramo_days": base / "tramo_days_shrinkage.csv",
-            "ip_asn_org": base / "ip_asnflag.csv",
+            "ip_asn_org": base / "ip_asn_flag.csv",
             "ip_asn_flag": base / "ip_asn_flag_shrinkage.csv",
             "ip_city": base / "ip_city_flag.csv",
             "ip_city_flag": base / "ip_city_flag_shrinkage.csv",

@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
-from inference.artifacts import get_shrinkage
-from inference.binning import get_tramos_days, get_tramos_amount 
+from inference.artifacts import get_shrinkage, get_ip_flag
+from inference.binning import get_tramos_days, get_tramos_amount, get_tramo_professional_network_tool
 from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
+from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -20,7 +21,13 @@ def bank_name_shrinkage(bank_name) :
         Valor de shrinkage asociado al banco.  
         Si el banco no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    return get_shrinkage("bank_name", bank_name, default=1.0)
+
+    return get_shrinkage(
+        "bank_name",
+        bank_name, 
+        default=1.0
+    )
+
 
 def os_family_shrinkage(user_agent):
     """
@@ -37,8 +44,13 @@ def os_family_shrinkage(user_agent):
         Valor de shrinkage asociado a la familia del sistema operativo.  
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    os_family = user_agent_extraction(user_agent)["os_family"]
-    return get_shrinkage("os_family", os_family, default=1.0)
+
+    os_family = parse_user_agent(user_agent)["os_family"]
+    return get_shrinkage(
+        "os_family",
+        os_family,
+        default=1.0
+    )
 
 
 def tramo_days_shrinkage(days):
@@ -56,17 +68,22 @@ def tramo_days_shrinkage(days):
         Valor de shrinkage asociado al tramo de días de devolución de prestamos.  
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    tramo_days = get_tramos_days(days)
-    return get_shrinkage("tramos_days", tramo_days, default=1.0)
 
-def tramo_amount_2_shrinkage(tramo_amount_2):
+    tramo_days = get_tramos_days(days)
+    return get_shrinkage(
+        "tramos_days",
+        tramo_days,
+        default=1.0
+    )
+
+def tramo_amount_2_shrinkage(amount):
     """
     Aplica el shrinkage correspondiente al tramo del importe solicitado.
 
     Parameters
     ----------
-    tramo_amount_2 : str
-        Tramo del importe del crédito solicitado.
+    amount : int
+        Cantidad de dinero solicitada por el usuario.
 
     Returns
     -------
@@ -74,7 +91,14 @@ def tramo_amount_2_shrinkage(tramo_amount_2):
         Valor de shrinkage asociado al tramo de importe.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    return get_shrinkage("tramo_amount_2", tramo_amount_2, default=1.0)
+
+    tramo_amount_2 = get_tramos_amount(amount)
+    return get_shrinkage(
+        "tramo_amount_2",
+        tramo_amount_2,
+        default=1.0
+    )
+
 
 def ip_asn_flag_shrinkage(ip):
     """
@@ -91,11 +115,17 @@ def ip_asn_flag_shrinkage(ip):
         Valor de shrinkage asociado al flag de ASN.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
     """
+
     asn_org = get_asn_org(ip)
     ip_asn_flag = get_ip_flag("ip_asn_org", asn_org, default="NORMAL")
-    return get_shrinkage("ip_asn_flag", ip_asn_flag, default=1.0)
+    return get_shrinkage(
+        "ip_asn_flag",
+        ip_asn_flag,
+        default=1.0
+    )
 
-def ip_city_flag_shrinkage(ip_city_flag):
+
+def ip_city_flag_shrinkage(ip):
     """
     Aplica el shrinkage correspondiente al flag de ciudad de la IP del usuario.
 
@@ -113,7 +143,12 @@ def ip_city_flag_shrinkage(ip_city_flag):
 
     city = get_city(ip)
     ip_city_flag = get_ip_flag("ip_city", city, default="NORMAL")
-    return get_shrinkage("ip_city_flag", ip_city_flag, default=1.0)
+
+    return get_shrinkage(
+        "ip_city_flag",
+        ip_city_flag,
+        default=1.0
+    )
 
 
 def tramo_platforms_shrinkage(tramo_platforms):
@@ -131,10 +166,14 @@ def tramo_platforms_shrinkage(tramo_platforms):
         Valor de shrinkage asociado al tramo de plataformas.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-    return get_shrinkage("tramo_platforms", tramo_platforms, default=1.0)
+    return get_shrinkage(
+        "tramo_platforms",
+        tramo_platforms,
+        default=1.0
+    )
 
 
-def tramo_platforms_network_tools_shrinkage(tramo_platforms_network_tools):
+def tramo_platforms_network_tools_shrinkage(df):
     """
     Aplica el shrinkage correspondiente al uso de herramientas de red en plataformas.
 
@@ -149,9 +188,13 @@ def tramo_platforms_network_tools_shrinkage(tramo_platforms_network_tools):
         Valor de shrinkage asociado al tramo.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
+
+    num_platf_net = calculate_num_prof_net_tools(df)
+    tramo_platforms_network= get_tramo_professional_network_tool(num_platf_net)
+    
     return get_shrinkage(
         "tramo_platforms_network_tools",
-        tramo_platforms_network_tools,
+        tramo_platforms_network,
         default=1.0,
     )
 
@@ -198,21 +241,51 @@ def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial):
         tramo_platforms_comercial,
         default=1.0,
     )
+    
 
-def user_agent_extraction(user_agent):
+def promo_code(promo_code_id):
     """
-    Funcion encargada de extraer los datos relevantes del user agent.
+    Función encargada de ver si el usuario ha utilizado o no un código de promoción. 
 
     Parameters
     ----------
-    user_agent : str
-        user agent del usuario.
+    promo_code_id : str
+        Codigo de promoción utilizado por el usuario.
 
     Returns
     -------
-    dict
-        Valor de la infformacion extraida del user agent.
-        
+    int
+        valor binario 1 si el usuario ha utilizado un código de promoción, 0 en caso contrario.
     """
-    user_agent_info = parse_user_agent(user_agent)
-    return user_agent_info
+
+    if promo_code_id is not None:
+        return 1
+    else: 
+        return 0
+
+def get_digital_score(df):
+    """
+    Calcula el digital score de un usuario a partir de su número de
+    herramientas profesionales de red.
+
+    Esta función actúa como un wrapper que calcula el número de plataformas
+    profesionales de red asociadas al usuario y devuelve dicho valor como
+    digital score.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+    DataFrame que contiene la información digital del usuario.
+
+    Returns
+    -------
+    float
+    Digital score calculado para el usuario. El valor corresponde a la
+    primera fila del DataFrame.
+    """
+
+    digital_score = calculate_digital_score(df)
+
+    return digital_score
+
+

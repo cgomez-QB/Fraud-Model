@@ -66,3 +66,23 @@ def get_tramos_amount(amount):
     ]
 
     return np.select(lst_cond, lst_choice, 'N/A')
+
+def get_tramo_professional_network_tool(num_platf_net):
+    
+    lst_cond = [
+        num_platf_net<=0,
+        num_platf_net==1,
+        num_platf_net==2,
+        num_platf_net==3,
+        (num_platf_net>=4) & (num_platf_net<=8)
+    ]
+
+    lst_choices = [
+        "0 plat. network/tools",
+        "1 plat. network/tools",
+        "2 plat. network/tools",
+        "3 plat. network/tools",
+        "4-8 plat. network/tools"    
+    ]
+
+    return np.select(lst_cond, lst_choices, 'N/A').item()

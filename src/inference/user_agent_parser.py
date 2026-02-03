@@ -33,7 +33,7 @@ def parse_user_agent(ua_string):
         "os_version": ua.os.version_string,
         "device_family": ua.device.family
         }   
-        
+
     except:
         return {
             "device":None,
