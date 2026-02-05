@@ -372,8 +372,61 @@ def safe_bool(var):
 
 
 def tele_privacy_status(var):
+    """
+    Indica si el estado de privacidad es privado.
+
+    Parameters
+    ----------
+    var : str
+        Estado de privacidad del usuario.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si el estado es 'private'; 0 en caso contrario.
+    """
     return np.select((var =='private'), 1, 0)
 
 
-def whatsapp_privacy_status(var):
+def has_information_flag(var):
+    """
+    Indica si existe información de privacidad asociada a WhatsApp.
+
+    Parameters
+    ----------
+    var : any
+        Valor asociado al estado de privacidad o uso de código promocional.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si el valor no es None; 0 en caso contrario.
+    """
     return 0 if var is None else 1
+
+
+def match_names( name1, name2):
+    """
+    Comprueba si dos nombres coinciden parcialmente entre sí.
+
+    La función devuelve una coincidencia positiva si uno de los nombres
+    está contenido dentro del otro.
+
+    Parameters
+    ----------
+    name1 : str
+        Primer nombre a comparar.
+    name2 : str
+        Segundo nombre a comparar.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si existe coincidencia parcial entre los nombres;
+        devuelve 0 en caso contrario.
+    """
+    if name1 in name2:
+        return 1
+    elif name2 in name1:
+        return 1
+    return 0 
