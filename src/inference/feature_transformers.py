@@ -1,10 +1,12 @@
+from numba.core.ir import Var
 import pandas as pd
 import numpy as np
 from inference.artifacts import get_shrinkage, get_ip_flag
-from inference.binning import get_tramos_days, get_tramos_amount, get_tramo_professional_network_tool
+from inference.binning import get_tramos_days, get_tramos_amount, get_tramo_comercial, get_tramo_professional_network_tool
 from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
-from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score
+from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score, calculate_num_com, masked_email_match, match_2_last_numbers
+
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -75,6 +77,7 @@ def tramo_days_shrinkage(days):
         tramo_days,
         default=1.0
     )
+
 
 def tramo_amount_2_shrinkage(amount):
     """
@@ -221,7 +224,7 @@ def tramo_good_behavioral_apps_shrinkage(tramo_good_behavioral_apps):
     )
 
 
-def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial):
+def tramo_platforms_comercial_shrinkage(df):
     """
     Aplica el shrinkage correspondiente al uso comercial de plataformas.
 
@@ -236,12 +239,16 @@ def tramo_platforms_comercial_shrinkage(tramo_platforms_comercial):
         Valor de shrinkage asociado al tramo.
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
+
+    num_platf_com = calculate_num_com(df)
+    tramo_platforms_comercial= get_tramo_comercial(num_platf_com)
+    
     return get_shrinkage(
         "tramo_platforms_comercial",
         tramo_platforms_comercial,
         default=1.0,
     )
-    
+
 
 def promo_code(promo_code_id):
     """
@@ -262,6 +269,7 @@ def promo_code(promo_code_id):
         return 1
     else: 
         return 0
+
 
 def get_digital_score(df):
     """
@@ -289,3 +297,83 @@ def get_digital_score(df):
     return digital_score
 
 
+def match_emails(real_email, partials_list_email):
+    """
+    Comprueba si un email real coincide con alguno de los emails
+    parcialmente enmascarados de la lista partials_list_email obtenida en trustfull .
+
+    La función evalúa el email real frente a cada uno de los patrones
+    enmascarados proporcionados y devuelve un indicador binario de coincidencia.
+
+    Parameters
+    ----------
+    real_email : str
+        Dirección de correo electrónico completa del usuario.
+    partials_list_email : str
+        Cadena de emails parcialmente enmascarados separados por comas asociados al telefono del usuario.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si existe al menos una coincidencia entre el email real
+        y alguno de los emails enmascarados; devuelve 0 en caso contrario.
+    """
+    
+    lst_emails = partials_list_email.split(",")
+
+    for email in lst_emails:
+        if masked_email_match(real_email, email):
+            return 1
+    return 0
+
+
+def match_phones(cell_phone, partials_list_phone):
+    """
+    Comprueba si un numero móvil real coincide con alguno de los emails
+    parcialmente enmascarados de la lista partials_list_email obtenida en trustfull .
+
+    La función evalúa el movil real frente a cada uno de los patrones
+    enmascarados proporcionados y devuelve un indicador binario de coincidencia.
+
+    Parameters
+    ----------
+    real_email : str
+        Dirección de correo electrónico completa del usuario.
+    partials_list_phone : str
+        Cadena de emails parcialmente enmascarados separados por comas asociados al telefono del usuario.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si existe al menos una coincidencia entre el móvil real
+        y alguno de los móviles enmascarados; devuelve 0 en caso contrario.
+    """
+    return match_2_last_numbers(partials_list_phone, cell_phone)
+
+
+def safe_bool(var):
+    """
+
+    """
+    # Normaliza None / bool / 0-1 / "true"/"false"
+    if var is None:
+        return 0
+
+    if isinstance(var, bool):
+        return int(var)
+
+    if isinstance(var, (int, float)):
+        return int(var != 0)
+
+    if isinstance(var, str):
+        return int(var.strip().lower() in ("1", "true", "yes", "y", "t"))
+
+    return int(bool(var))
+
+
+def tele_privacy_status(var):
+    return np.select((var =='private'), 1, 0)
+
+
+def whatsapp_privacy_status(var):
+    return 0 if var is None else 1

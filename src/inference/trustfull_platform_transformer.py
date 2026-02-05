@@ -111,7 +111,7 @@ def calculate_digital_score(df):
     
     return df["digital_presence_score"].iloc[0]
 
-def calculate_num_platforms(df, lst_cols_trust, var_name):
+def calculate_num_platforms(df, lst_cols, var_name):
     """
     Calcula el número de plataformas activas para un usuario a partir de un
     conjunto de variables binarias y guarda el resultado en una nueva columna.
@@ -124,7 +124,7 @@ def calculate_num_platforms(df, lst_cols_trust, var_name):
     ----------
     df : pandas.DataFrame
         DataFrame que contiene la información del usuario.
-    lst_cols_trust : list of str
+    lst_cols : list of str
         Lista de nombres de columnas binarias que se utilizarán para el cálculo.
     var_name : str
         Nombre de la columna donde se almacenará el número total de plataformas.
@@ -137,7 +137,7 @@ def calculate_num_platforms(df, lst_cols_trust, var_name):
     """
 
     df[var_name] = (
-        df[lst_cols_trust]
+        df[lst_cols]
         .fillna(0)
         .astype("int8")
         .sum(axis=1)
@@ -173,7 +173,114 @@ def calculate_num_prof_net_tools(df):
 
     return df["num_professional_network_tools"].iloc[0].astype(float)
 
+def calculate_num_com(df):
+    """
+    Calcula el número de herramientas profesionales de red utilizadas por
+    el usuario.
 
+    Esta función utiliza el conjunto de columnas definidas como herramientas
+    profesionales de red y devuelve el número total de plataformas activas
+    asociadas a este grupo para el usuario.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame que contiene la información digital del usuario.
+
+    Returns
+    -------
+    float
+        Número total de herramientas profesionales de red asociadas al usuario.
+        El valor corresponde a la primera fila del DataFrame.
+    """
+
+    # Cargamos los datos para calcular el digital score
+    digi = load_digital_score_data()
+
+    print(digi.lst_cols_comercial)
+    print(type(digi.lst_cols_comercial))
+
+
+    df = calculate_num_platforms(df, digi.lst_cols_comercial, "num_plataformas_comercial")
+
+    return df["num_plataformas_comercial"].iloc[0].astype(float)
+
+def masked_email_match(real_email, masked_email):
+    """
+    Comprueba si un email real coincide con un email parcialmente enmascarado.
+
+    La comparación se realiza verificando los fragmentos no censurados del
+    email enmascarado (antes del '@', dominio y extensión) contra el email real.
+
+    Parameters
+    ----------
+    real_email : str
+        Dirección de correo electrónico completa del usuario.
+    masked_email : str
+        Dirección de correo electrónico parcialmente enmascarada, donde los
+        caracteres ocultos se representan con '*'.
+
+    Returns
+    -------
+    bool
+        True si el email real coincide con el patrón del email enmascarado,
+        False en caso contrario o si alguno de los valores no es una cadena.
+    """
+    if not isinstance(real_email, str) or not isinstance(masked_email, str):
+        return False
+
+    real_email = real_email.lower().strip()
+    masked_email = masked_email.lower().strip()
+
+    # separamos en los 2-3 componentes que no estan censurados dentro de masked_email
+    lst = masked_email.split("*")
+    lst_component_email = [x for x in lst if x not in (None, "", [], ".")] 
+    is_equal = False
+
+    for i, component in enumerate(lst_component_email):
+        len_comp = len(component)
+        if i == 0: # Comparamos si ambos correos comienzan igual
+            is_equal = component == real_email[:len_comp]
+
+        elif i == 1:# Comparamos el dominio de ambos correo para ver si coinciden
+            find = real_email.find("@")
+            is_equal = component == real_email[find:(find + len_comp)]
+
+        elif i == 2: # Comparamos si el tipo de dominio es el mismo (.com, .es, ...)
+            is_equal = component == real_email[-len_comp:]
+
+    return is_equal
+
+
+def match_2_last_numbers(cell_phone, partials_list_phone ):
+    """
+    Comprueba si los dos últimos dígitos de un número de teléfono coinciden
+    con alguno de los teléfonos parcialmente enmascarados de una lista de telefonos asociados al email del usuario.
+
+    La función compara los dos últimos caracteres del número de teléfono
+    completo con los dos últimos caracteres de cada uno de los teléfonos
+    proporcionados en la lista.
+
+    Parameters
+    ----------
+    partials_list_phone : str
+        Cadena de números de teléfono (parciales o completos) separados por comas.
+    cell_phone : str
+        Número de teléfono completo del usuario.
+
+    Returns
+    -------
+    int
+        Devuelve 1 si existe al menos una coincidencia en los dos últimos
+        dígitos; devuelve 0 en caso contrario.
+    """
+    lst_phones = partials_list_phone.split(",")
+
+    for phone in lst_phones:
+        
+        if phone[-2:] == cell_phone[-2:]:
+            return 1
+    return 0
 
 
 
