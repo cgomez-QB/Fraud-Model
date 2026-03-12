@@ -373,7 +373,7 @@ def safe_bool(var):
 
 def tele_privacy_status(var):
     """
-    Indica si el estado de privacidad es privado.
+    Indica si el estado de privacidad de telegram es publico o no.
 
     Parameters
     ----------
@@ -430,3 +430,10 @@ def match_names( name1, name2):
     elif name2 in name1:
         return 1
     return 0 
+
+
+def tramo_num_attempts(dni, email, phone):
+    """
+    
+    """
+

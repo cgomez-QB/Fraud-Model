@@ -61,7 +61,6 @@ def load_artifacts():
             "tramo_platforms_network_tools": base / "tramo_platforms_network_tools_shrinkage.csv",
             "tramo_good_behavioral_apps": base / "tramo_good_behavioral_apps_shrinkage.csv",
             "tramo_platforms_comercial": base / "tramo_platforms_comercial_shrinkage.csv",
-
         }
 
         shrinkage: Dict[str, Dict[str, float]] = {

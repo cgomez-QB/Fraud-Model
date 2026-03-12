@@ -99,8 +99,7 @@ def calculate_digital_score(df):
             col_weights[col] = 0.0
 
     weights = pd.Series(col_weights)
-
-    print("Llego hasta aqui")
+    
     df["digital_presence_score"] = (
         df[digi.lst_cols_trust]
         .fillna(0)
