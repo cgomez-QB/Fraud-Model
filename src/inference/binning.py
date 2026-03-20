@@ -106,3 +106,42 @@ def get_tramo_comercial(num_platf_net):
     ]
 
     return np.select(lst_cond, lst_choices, 'N/A').item()
+
+def get_tramo_num_attempts(num_attempts):
+    """
+        
+    """
+    # Lista de las condiciones
+    lst_cond = [
+        num_attempts == 0,
+        1 <= num_attempts <= 10,
+        num_attempts > 10
+    ]
+
+    # Lista de variables a escoger
+    lst_choices = [
+        "0 intentos",
+        "1-10 intentos",
+        "más de 10 intentos"
+    ] 
+
+    return np.select(lst_cond, lst_choices, 'N/A').item()
+
+def get_tramo_days_last_attempt(diff_days):
+    lst_cond = [
+        diff_days == 0,
+        (diff_days >= 1) & (diff_days <= 22),
+        (diff_days >= 23) & (diff_days <= 142),
+        (diff_days >= 143) & (diff_days <= 398),
+        diff_days > 398
+    ]
+
+    lst_choices = [
+        "0 dias diff",
+        "22-1 día diff",
+        "142-23 días diff",
+        "398-143 días diff",
+        "más de 398 días diff"
+    ]
+
+    return np.select(lst_cond, lst_choices, 'N/A').item()
