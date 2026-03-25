@@ -140,7 +140,7 @@ def transform(dni, email, cell_phone) -> dict:
     # Calculamos las diferentes metricas
     num_attempts = df_attempts.shape[0]
     diff_days_last_attempt = (date.today() - df_attempts['created_at'].max()).days
-    last_attempt = (date.today()  - df_attempts["created_at_time"].max()).total_seconds() / 60
+    last_attempt = (date.today() - df_attempts["created_at"].max()).total_seconds() / 60
 
     return{
         'num_attempts':num_attempts,

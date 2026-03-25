@@ -1,12 +1,12 @@
 from numba.core.ir import Var
 import pandas as pd
 import numpy as np
-from inference.artifacts import get_shrinkage, get_ip_flag
+from inference.artifacts import get_shrinkage, get_ip_flag, get_last_attempt_shrinkage
 from inference.binning import *
 from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
 from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score, calculate_num_com, masked_email_match, match_2_last_numbers
-from inference.previousAttemptsTransformer import transform
+from inference.trustfull_platform_transformer import transform
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -478,6 +478,25 @@ def tramo_days_last_attempt(diff_days_last_attempt):
         default=1.0,
     )
 
+def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
+    """
+    Aplica el shrinkage correspondiente al tiempo desde el ultimo intento.
+
+    Parameters
+    ----------
+    num_attempts : int
+        Número anterios de intentos fallidos.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    
+    """
+
+    return get_last_attempt_shrinkage(last_attempt, previous_attempts)
+
 
 def variables_attempts(dni, email, cell_phone):
     """
@@ -501,19 +520,19 @@ def variables_attempts(dni, email, cell_phone):
     """
     dct_result = transform(dni, email, cell_phone)
 
+    # Calculamos las diferentes variables relacionadas con intentos previos 
     num_attempts = dct_result['num_attempts']
     diff_days_last_attempt = dct_result['diff_days_last_attemtp']
     last_attempt = dct_result['last_attempt']
+    previous_attempts = 1 if num_attempts > 0 else 0
 
     # Obtenemos los valores de los tramos y su respectivo shrinkage
     tramos_num_attempts_shrinkage = tramo_num_attempts(num_attempts)
-    tramo_days_last_attempt_shrinkage = tramo_days_last_attempt(diff_days_last_attempt)
+    tramo_days_last_attempt_shrinkage = tramo_days_last_attempt(diff_days_last_attempt) 
+    last_attempt_prob_xgb_oof_flag_shrinkage = last_attempt_prob_xgb_flag(last_attempt, previous_attempts)
 
     return {
         'tramos_num_attempts_shrinkage': tramos_num_attempts_shrinkage,
         'tramo_days_last_attempt_shrinkage' : tramo_days_last_attempt_shrinkage,
-        'last_attempt': None 
+        'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage 
     }
-
-
-
