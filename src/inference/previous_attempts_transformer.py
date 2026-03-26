@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import mysql.connector as sq
 from datetime import date, timedelta
 import os
@@ -99,12 +100,22 @@ def get_df_attempts(dni, email, cell_phone):
         left join contact_details cd on cd.id = la.contact_details_id
 
         WHERE la.status NOT IN ('CLOSED', 'DELINQUENT', 'ASNEF', 'FRAUD', 'WRITE_OFF')
-        AND (u.dni = {dni} OR cd.email = {email} OR cd.cell_phone = {cell_phone}) 
-        AND la.created_at between {str(year_date)}  AND {str(current_date)}
+        AND (
+              u.dni = '{dni}'
+              OR cd.email = '{email}'
+              OR cd.cell_phone = '{cell_phone}'
+          )
+          AND la.created_at BETWEEN '{year_date}' AND '{current_date}'
     """
     # Obtenemos los datos de la base de datos 
-    df_attempts = get_querys([query])[0]
+    # df_attempts = get_querys([query])[0]
+    df_attempts = pd.read_csv("../data/datos/df_attempts.csv")
 
+    df_attempts = df_attempts[
+        (df_attempts['dni'] == dni) |
+        (df_attempts['email'] == email) |
+        (df_attempts['cell_phone'] == cell_phone)
+    ]
     return df_attempts
 
 def transform(dni, email, cell_phone) -> dict:

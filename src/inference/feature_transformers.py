@@ -6,7 +6,7 @@ from inference.binning import *
 from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
 from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score, calculate_num_com, masked_email_match, match_2_last_numbers
-from inference.trustfull_platform_transformer import transform
+from inference.previous_attempts_transformer import transform
 
 def bank_name_shrinkage(bank_name) :
     """
