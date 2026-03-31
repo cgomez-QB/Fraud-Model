@@ -144,4 +144,4 @@ def get_tramo_days_last_attempt(diff_days):
         "más de 398 días diff"
     ]
 
-    return np.select(lst_cond, lst_choices, 'N/A').item()
+    return np.select(lst_cond, lst_choices, "0 dias diff").item()

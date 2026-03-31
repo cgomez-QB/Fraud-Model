@@ -448,6 +448,7 @@ def tramo_num_attempts(num_attempts):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
     tramo_num_attempts = get_tramo_num_attempts(num_attempts)
+    print('tramo_num_attempts', tramo_num_attempts)
     
     return get_shrinkage(
         "tramo_num_attempts",
@@ -471,11 +472,12 @@ def tramo_days_last_attempt(diff_days_last_attempt):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
     tramo_days_last_attempt = get_tramo_days_last_attempt(diff_days_last_attempt)
-    
+    print('tramo_days_last_attempt', tramo_days_last_attempt)
+
     return get_shrinkage(
         "tramo_days_last_attempt",
         tramo_days_last_attempt,
-        default=1.0,
+        default=np.nan,
     )
 
 def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
@@ -498,7 +500,7 @@ def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
     return get_last_attempt_shrinkage(last_attempt, previous_attempts)
 
 
-def variables_attempts(dni, email, cell_phone):
+def variables_attempts(dni, email, cell_phone, created_at):
     """
     Funcion encargada de calcular todas las variables de intentos previos fallidos de cada usuario segun su dni, email o num de teléfono.
 
@@ -510,6 +512,8 @@ def variables_attempts(dni, email, cell_phone):
         Email del cliente.
     cell_phone : str
         Número de telefono del cliente.
+    created_at: pd.datetime
+        Fecha en la cual se creo la solicitud de préstamo
 
     Returns
     -------
@@ -518,13 +522,18 @@ def variables_attempts(dni, email, cell_phone):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     
     """
-    dct_result = transform(dni, email, cell_phone)
+    dct_result = transform(dni, email, cell_phone, created_at)
 
     # Calculamos las diferentes variables relacionadas con intentos previos 
     num_attempts = dct_result['num_attempts']
     diff_days_last_attempt = dct_result['diff_days_last_attemtp']
     last_attempt = dct_result['last_attempt']
     previous_attempts = 1 if num_attempts > 0 else 0
+
+    print('num_attempts', num_attempts)
+    print('diff_days_last_attempt', diff_days_last_attempt)
+    print('last_attempt', last_attempt)
+    print('previous_attempts', previous_attempts)
 
     # Obtenemos los valores de los tramos y su respectivo shrinkage
     tramos_num_attempts_shrinkage = tramo_num_attempts(num_attempts)
