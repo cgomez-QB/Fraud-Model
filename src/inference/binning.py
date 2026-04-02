@@ -114,14 +114,16 @@ def get_tramo_num_attempts(num_attempts):
     # Lista de las condiciones
     lst_cond = [
         num_attempts == 0,
-        1 <= num_attempts <= 10,
+        num_attempts == 1,
+        2 <= num_attempts <= 10,
         num_attempts > 10
     ]
 
     # Lista de variables a escoger
     lst_choices = [
         "0 intentos",
-        "1-10 intentos",
+        "1 intento previo",
+        "2-10 intentos",
         "más de 10 intentos"
     ] 
 
@@ -130,18 +132,19 @@ def get_tramo_num_attempts(num_attempts):
 def get_tramo_days_last_attempt(diff_days):
     lst_cond = [
         diff_days == 0,
-        (diff_days >= 1) & (diff_days <= 22),
-        (diff_days >= 23) & (diff_days <= 142),
-        (diff_days >= 143) & (diff_days <= 398),
-        diff_days > 398
+        (diff_days >= 1) & (diff_days <= 9),
+        (diff_days >= 10) & (diff_days <= 109),
+        diff_days >= 110
     ]
 
     lst_choices = [
-        "0 dias diff",
-        "22-1 día diff",
-        "142-23 días diff",
-        "398-143 días diff",
-        "más de 398 días diff"
+        "0 días diff",
+        "1-9 días diff",
+        "10-109 días diff",
+        "110 días o más"
     ]
 
-    return np.select(lst_cond, lst_choices, "0 dias diff").item()
+    return np.select(lst_cond, lst_choices, "N/A").item()
+
+def get_req_ip_bin():
+    return None

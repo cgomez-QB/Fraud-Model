@@ -448,7 +448,6 @@ def tramo_num_attempts(num_attempts):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
     tramo_num_attempts = get_tramo_num_attempts(num_attempts)
-    print('tramo_num_attempts', tramo_num_attempts)
     
     return get_shrinkage(
         "tramo_num_attempts",
@@ -472,7 +471,6 @@ def tramo_days_last_attempt(diff_days_last_attempt):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
     tramo_days_last_attempt = get_tramo_days_last_attempt(diff_days_last_attempt)
-    print('tramo_days_last_attempt', tramo_days_last_attempt)
 
     return get_shrinkage(
         "tramo_days_last_attempt",
@@ -499,8 +497,28 @@ def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
 
     return get_last_attempt_shrinkage(last_attempt, previous_attempts)
 
+def req_ip_bin(ip_address):
+    """
+    Aplica el shrinkage correspondiente al numero de intentos de solicitudes fallidas con esa misma ip.
 
-def variables_attempts(dni, email, cell_phone, created_at):
+    Parameters
+    ----------
+    num_attempts : int
+        Número anterios de intentos fallidos.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    
+    """
+    
+
+    return None
+
+
+def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     """
     Funcion encargada de calcular todas las variables de intentos previos fallidos de cada usuario segun su dni, email o num de teléfono.
 
@@ -512,8 +530,10 @@ def variables_attempts(dni, email, cell_phone, created_at):
         Email del cliente.
     cell_phone : str
         Número de telefono del cliente.
+    ip_address: str
+        Dirección IP del dispositivo con el cual el usuario a realizado la solicitud de crédito.
     created_at: pd.datetime
-        Fecha en la cual se creo la solicitud de préstamo
+        Fecha en la cual se creo la solicitud de préstamo.
 
     Returns
     -------
@@ -522,26 +542,24 @@ def variables_attempts(dni, email, cell_phone, created_at):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     
     """
-    dct_result = transform(dni, email, cell_phone, created_at)
+    dct_result = transform(dni, email, cell_phone, ip_address, created_at)
 
     # Calculamos las diferentes variables relacionadas con intentos previos 
     num_attempts = dct_result['num_attempts']
     diff_days_last_attempt = dct_result['diff_days_last_attemtp']
     last_attempt = dct_result['last_attempt']
     previous_attempts = 1 if num_attempts > 0 else 0
-
-    print('num_attempts', num_attempts)
-    print('diff_days_last_attempt', diff_days_last_attempt)
-    print('last_attempt', last_attempt)
-    print('previous_attempts', previous_attempts)
+    req_ip = dct_result['req_ip']
 
     # Obtenemos los valores de los tramos y su respectivo shrinkage
     tramos_num_attempts_shrinkage = tramo_num_attempts(num_attempts)
     tramo_days_last_attempt_shrinkage = tramo_days_last_attempt(diff_days_last_attempt) 
     last_attempt_prob_xgb_oof_flag_shrinkage = last_attempt_prob_xgb_flag(last_attempt, previous_attempts)
+    req_ip_bin_shrinkage = req_ip_bin(req_ip)
 
     return {
         'tramos_num_attempts_shrinkage': tramos_num_attempts_shrinkage,
         'tramo_days_last_attempt_shrinkage' : tramo_days_last_attempt_shrinkage,
-        'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage 
+        'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage ,
+        'req_ip_bin_shrinkage': req_ip_bin_shrinkage
     }

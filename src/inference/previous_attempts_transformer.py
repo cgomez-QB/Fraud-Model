@@ -3,6 +3,7 @@ import pandas as pd
 import mysql.connector as sq
 from datetime import date, timedelta
 import os
+from inference.artifacts import get_previous_attempts
 
 
 def get_connection():
@@ -79,7 +80,7 @@ def get_df_attempts(dni, email, cell_phone, created_at = pd.to_datetime(date.tod
     """
 
     # Cargamos los datos de todos los intentos previos fallidos. 
-    df_attempts = pd.read_csv("../data/datos/df_attempts.csv")
+    df_attempts = get_previous_attempts()
 
     for col in ['dni', 'email', 'cell_phone']:
         mask = df_attempts[col].astype(str).str.contains('deleted', na=False)
@@ -99,7 +100,7 @@ def get_df_attempts(dni, email, cell_phone, created_at = pd.to_datetime(date.tod
 
     return df_attempts
 
-def transform(dni, email, cell_phone, created_at) -> dict:
+def transform(dni, email, cell_phone, ip_address, created_at):
     """
     Funcion encargada de devolver todos los calculos relacionados con las variables de numero de intentos, diferencia
     de tiempo entre solicitudes.
@@ -114,6 +115,8 @@ def transform(dni, email, cell_phone, created_at) -> dict:
         Email del cliente.
     cell_phone : str
         Número de telefono del cliente.
+    ip_address: str
+        Dirección IP del dispositivo con el cual el usuario a realizado la solicitud de crédito.
     created_at: pd.datetime
         Fecha en la cual se creo la solicitud de préstamo
 
@@ -136,10 +139,13 @@ def transform(dni, email, cell_phone, created_at) -> dict:
         num_attempts = df_attempts.shape[0]
         diff_days_last_attempt = (created_at - df_attempts['created_at'].max()).days
         last_attempt = (created_at - df_attempts["created_at"].max()).total_seconds() / 60
+    
+    # Obtenemos los intentos fallidos previos con la misma ip
 
     return{
         'num_attempts':num_attempts,
         'diff_days_last_attemtp': diff_days_last_attempt,
-        'last_attempt': last_attempt
+        'last_attempt': last_attempt,
+        'req_ip': np.nan
     }
 

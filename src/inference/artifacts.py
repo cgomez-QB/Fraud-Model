@@ -14,6 +14,8 @@ class Artifacts:
   # Modelos ML
   last_attempt_model: Optional[object] = None
   last_attempt_artifacts: Optional[Dict] = None
+  # DataFrame con los intentos todos los intentos previos fallidos
+  df_attempts: Optional[pd.DataFrame] = None
 
 
 _ARTIFACTS: Optional[Artifacts] = None
@@ -56,20 +58,33 @@ def _load_last_attempt_model():
       artifacts_path = models_path / "last_attempt_artifacts.pkl"
       
       if not model_path.exists() or not artifacts_path.exists():
-          print(f"⚠️  Modelo de last_attempt no encontrado en {models_path}")
+        #   print(f"⚠️  Modelo de last_attempt no encontrado en {models_path}")
           return None, None
       
-      print("📦 Cargando modelo last_attempt XGB...")
+    #   print("📦 Cargando modelo last_attempt XGB...")
       model = joblib.load(model_path)
       artifacts = joblib.load(artifacts_path)
-      print("✅ Modelo last_attempt cargado correctamente")
+    #   print("✅ Modelo last_attempt cargado correctamente")
       
       return model, artifacts
       
   except Exception as e:
-      print(f"❌ Error cargando modelo last_attempt: {e}")
+    #   print(f"❌ Error cargando modelo last_attempt: {e}")
       return None, None
 
+def _load_dataframe_previous_attemtps():
+    """Carga el df con todos los intentos previos fallidos de todos los usuarios new"""
+    previous_path = _data_artifacts_dir()
+    previous_path = previous_path / "df_attempts.csv"
+
+    # En caso de no existir el archivo csv devolvemos un None
+    if not previous_path.exists():
+        return None, None
+
+    # Cargamos el df con todos los intentos previos
+    df_attemtps = pd.read_csv(previous_path)
+
+    return df_attemtps
 
 def load_artifacts():
   """
@@ -103,14 +118,18 @@ def load_artifacts():
       
       # Cargar modelos ML
       last_attempt_model, last_attempt_artifacts = _load_last_attempt_model()
+
+      # Cargamos todos los intentos previos fallidos de creditos
+      df_attempts = _load_dataframe_previous_attemtps()
       
       _ARTIFACTS = Artifacts(
           shrinkage=shrinkage,
           last_attempt_model=last_attempt_model,
-          last_attempt_artifacts=last_attempt_artifacts
+          last_attempt_artifacts=last_attempt_artifacts,
+          df_attempts = df_attempts
       )
       
-      print("✅ Todos los artifacts cargados correctamente")
+    #   print("✅ Todos los artifacts cargados correctamente")
   return _ARTIFACTS
 
 
@@ -125,6 +144,10 @@ def get_ip_flag(feature, key, default="NORMAL"):
   art = load_artifacts()
   return art.shrinkage.get(feature, {}).get(key, default)
 
+def get_previous_attempts():
+    """ Obtenemos el DataFrame con los inentos anteriores fallidos"""
+    art = load_artifacts()
+    return art.df_attempts
 
 def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
     """
@@ -144,7 +167,7 @@ def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
 
     # Si el modelo no está disponible, retornar valor por defecto
     if art.last_attempt_model is None or art.last_attempt_artifacts is None:
-        print("⚠️  Modelo last_attempt no disponible, usando valor por defecto")
+        # print("⚠️  Modelo last_attempt no disponible, usando valor por defecto")
         return 0.31  # Media global
 
     # Manejar valores nulos
@@ -171,7 +194,6 @@ def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
     else:
         flag = "HIGH_DR"
 
-    print('flag', flag)
     # Obtener valor de shrinkage para ese flag
     shrinkage_values = art.shrinkage.get('last_attempt', {})
     shrinkage_value = shrinkage_values[flag]
