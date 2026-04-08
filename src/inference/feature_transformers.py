@@ -1,7 +1,7 @@
 from numba.core.ir import Var
 import pandas as pd
 import numpy as np
-from inference.artifacts import get_shrinkage, get_ip_flag, get_last_attempt_shrinkage
+from inference.artifacts import get_shrinkage, get_var_flag, get_last_attempt_shrinkage
 from inference.binning import *
 from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
@@ -120,7 +120,7 @@ def ip_asn_flag_shrinkage(ip):
     """
 
     asn_org = get_asn_org(ip)
-    ip_asn_flag = get_ip_flag("ip_asn_org", asn_org, default="NORMAL")
+    ip_asn_flag = get_var_flag("ip_asn_org", asn_org, default="NORMAL")
     return get_shrinkage(
         "ip_asn_flag",
         ip_asn_flag,
@@ -145,7 +145,7 @@ def ip_city_flag_shrinkage(ip):
     """
 
     city = get_city(ip)
-    ip_city_flag = get_ip_flag("ip_city", city, default="NORMAL")
+    ip_city_flag = get_var_flag("ip_city", city, default="NORMAL")
 
     return get_shrinkage(
         "ip_city_flag",
@@ -455,6 +455,7 @@ def tramo_num_attempts(num_attempts):
         default=1.0,
     )
 
+
 def tramo_days_last_attempt(diff_days_last_attempt):
     """
     Aplica el shrinkage correspondiente a numero de intentos anteriores fallidos del usuario segun su dni, email o cell_phone.
@@ -478,6 +479,7 @@ def tramo_days_last_attempt(diff_days_last_attempt):
         default=np.nan,
     )
 
+
 def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
     """
     Aplica el shrinkage correspondiente al tiempo desde el ultimo intento.
@@ -497,7 +499,8 @@ def last_attempt_prob_xgb_flag(last_attempt, previous_attempts):
 
     return get_last_attempt_shrinkage(last_attempt, previous_attempts)
 
-def req_ip_bin(ip_address):
+
+def req_ip_bin(req_ip):
     """
     Aplica el shrinkage correspondiente al numero de intentos de solicitudes fallidas con esa misma ip.
 
@@ -513,14 +516,20 @@ def req_ip_bin(ip_address):
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     
     """
-    
+    req_ip_bin = get_req_ip_bin(req_ip)
 
-    return None
+    return get_shrinkage(
+        "req_ip_bin",
+        req_ip_bin,
+        default=1,
+    )
 
 
 def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     """
     Funcion encargada de calcular todas las variables de intentos previos fallidos de cada usuario segun su dni, email o num de teléfono.
+    Calcula el numero de intentos previos, dias desde el ultimo intento fallido, prob de fraude segun los minutos desde el ultimo intento 
+    y numero de veces que la IP sale repetida en intentos previos fallidos.
 
     Parameters
     ----------
@@ -537,9 +546,8 @@ def variables_attempts(dni, email, cell_phone, ip_address, created_at):
 
     Returns
     -------
-    float
-        Valor de shrinkage asociado al tramo.
-        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    dict
+        Diccionario con las diferentes variables realacionadas con intentos previos fallidos de los usuarios news.
     
     """
     dct_result = transform(dni, email, cell_phone, ip_address, created_at)
@@ -551,6 +559,7 @@ def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     previous_attempts = 1 if num_attempts > 0 else 0
     req_ip = dct_result['req_ip']
 
+    print('req_ip', req_ip)
     # Obtenemos los valores de los tramos y su respectivo shrinkage
     tramos_num_attempts_shrinkage = tramo_num_attempts(num_attempts)
     tramo_days_last_attempt_shrinkage = tramo_days_last_attempt(diff_days_last_attempt) 
@@ -560,6 +569,59 @@ def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     return {
         'tramos_num_attempts_shrinkage': tramos_num_attempts_shrinkage,
         'tramo_days_last_attempt_shrinkage' : tramo_days_last_attempt_shrinkage,
-        'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage ,
+        'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage,
         'req_ip_bin_shrinkage': req_ip_bin_shrinkage
+    }
+
+
+def hour_of_loan_flag(hour_of_loan):
+    """
+    Aplica el shrinkage correspondiente al tiempo desde el ultimo intento.
+
+    Parameters
+    ----------
+    hour_of_loan : int
+        Hora en la que solicita el credito.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    
+    """
+    # Obtenemos el flag de la hora
+    hour_loan_flag = get_var_flag("hour_loan_flag", hour_of_loan, default="NORMAL")
+    return get_shrinkage(
+        "hour_loan_flag",
+        hour_loan_flag,
+        default=1.0
+    )
+
+def get_temporal_vars(created_at):
+    """
+    Funcion encargada de generar las variables relacionadas con el tiempo en la que se solicitan los prestamos.
+    Parameters
+    ----------
+    created_at : pd.datetime
+        Fecha de cración de la solicitud del prestamo.
+   
+    Returns
+    -------
+    dict
+        Diccionario con las diferentes variables realacionadas con las variables temporales.
+    """
+
+    # Obtenemos los valores base de cada una de las variables 
+    hour_of_loan = created_at.dt.hour
+    
+    # Obtenemos los shrinkage de todas las variables
+    hour_loan_flag_shrinkage = hour_of_loan_flag(hour_of_loan)
+
+
+    return {
+        'hour_loan_flag_shrinkage': hour_loan_flag_shrinkage,
+        'day_week_flag_shrinkage': np.nan,
+        'day_hour_loan_flag_shrinkage': np.nan,
+        'diff_minutes_flag_shrinkage': np.nan,  
     }

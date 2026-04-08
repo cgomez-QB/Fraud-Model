@@ -146,5 +146,20 @@ def get_tramo_days_last_attempt(diff_days):
 
     return np.select(lst_cond, lst_choices, "N/A").item()
 
-def get_req_ip_bin():
-    return None
+def get_req_ip_bin(req_ip):
+
+    # Lista de las condiciones
+    lst_cond = [
+        req_ip == 0,
+        1 <= req_ip <= 2,
+        req_ip > 2
+    ]
+
+    # Lista de variables a escoger
+    lst_choices = [
+        '0 req ip',
+        '1-2 req ip',
+        '>2 req ip'
+    ]
+     
+    return np.select(lst_cond, lst_choices, '0 req ip').item()

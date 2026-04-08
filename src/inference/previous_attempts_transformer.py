@@ -100,6 +100,38 @@ def get_df_attempts(dni, email, cell_phone, created_at = pd.to_datetime(date.tod
 
     return df_attempts
 
+def get_df_attempts_req_ip(ip_adress, created_at):
+    """
+    Función encargada de generar la query y el df con los intentos previos fallidos con el mismo dni, email o cell_phone
+
+    Parameters
+    ----------
+    dni : str
+        Dni del cliente.
+    email : str
+        Email del cliente.
+    cell_phone : str
+        Número de telefono del cliente.
+    created_at: pd.datetime
+        Fecha en la cual se creo la solicitud de préstamo
+    
+    Returns
+    -------
+    pandas.DataFrame
+        Dataframe con todos los intentos anteriores fallidos
+    
+    """
+    # Cargamos los datos de todos los intentos previos fallidos. 
+    df_attempts = get_previous_attempts()
+
+    # Filtramos el numero de ip iguales que sean anteriores a la solicitud actual
+    mask = (
+        (df_attempts["ip_address"] == ip_adress) &
+        (df_attempts["created_at"] < created_at)
+    )
+
+    return int(mask.sum())
+
 def transform(dni, email, cell_phone, ip_address, created_at):
     """
     Funcion encargada de devolver todos los calculos relacionados con las variables de numero de intentos, diferencia
@@ -141,11 +173,12 @@ def transform(dni, email, cell_phone, ip_address, created_at):
         last_attempt = (created_at - df_attempts["created_at"].max()).total_seconds() / 60
     
     # Obtenemos los intentos fallidos previos con la misma ip
+    req_ip = get_df_attempts_req_ip(ip_address, created_at)
 
     return{
         'num_attempts':num_attempts,
         'diff_days_last_attemtp': diff_days_last_attempt,
         'last_attempt': last_attempt,
-        'req_ip': np.nan
+        'req_ip': req_ip
     }
 

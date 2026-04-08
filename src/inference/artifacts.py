@@ -110,7 +110,10 @@ def load_artifacts():
           "tramo_platforms_comercial": base / "tramo_platforms_comercial_shrinkage.csv",
           "tramo_num_attempts": base / "tramo_num_attempts.csv",
           "tramo_days_last_attempt": base / "tramo_days_last_attempt.csv",
-          "last_attempt": base / "last_attempt_shrinkage.csv"
+          "req_ip_bin": base /"req_ip_bin.csv",
+          "last_attempt": base / "last_attempt_shrinkage.csv",
+          "hour_loan_flag": base / "hour_loan_flag.csv",
+          "hour_loan_flag_shrinkage": base / "hour_loan_flag_shrinkage.csv"
       }
       shrinkage: Dict[str, Dict[str, float]] = {
           feature: _load_csv_map(path) for feature, path in files.items()
@@ -139,15 +142,17 @@ def get_shrinkage(feature: str, key: str, default: float = 1.0):
   return float(art.shrinkage.get(feature, {}).get(key, default))
 
 
-def get_ip_flag(feature, key, default="NORMAL"):
-  """Obtiene flag de IP"""
+def get_var_flag(feature, key, default="NORMAL"):
+  """Obtiene flag dela variable pasada"""
   art = load_artifacts()
   return art.shrinkage.get(feature, {}).get(key, default)
+
 
 def get_previous_attempts():
     """ Obtenemos el DataFrame con los inentos anteriores fallidos"""
     art = load_artifacts()
     return art.df_attempts
+
 
 def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
     """
