@@ -112,8 +112,11 @@ def load_artifacts():
           "tramo_days_last_attempt": base / "tramo_days_last_attempt.csv",
           "req_ip_bin": base /"req_ip_bin.csv",
           "last_attempt": base / "last_attempt_shrinkage.csv",
-          "hour_loan_flag": base / "hour_loan_flag.csv",
-          "hour_loan_flag_shrinkage": base / "hour_loan_flag_shrinkage.csv"
+          "hour_loan": base / "hour_loan_flag.csv",
+          "hour_loan_flag": base / "hour_loan_flag_shrinkage.csv",
+          "day_week_flag": base / "day_week_flag_shrinkage.csv",
+          "day_hour_loan": base / "day_hour_loan_flag.csv",
+          "day_hour_loan_flag": base / "day_hour_loan_flag_shrinkage.csv",
       }
       shrinkage: Dict[str, Dict[str, float]] = {
           feature: _load_csv_map(path) for feature, path in files.items()

@@ -591,12 +591,62 @@ def hour_of_loan_flag(hour_of_loan):
     
     """
     # Obtenemos el flag de la hora
-    hour_loan_flag = get_var_flag("hour_loan_flag", hour_of_loan, default="NORMAL")
+    hour_loan_flag = get_var_flag("hour_loan", hour_of_loan, default="NORMAL")
+    return (
+        get_shrinkage(
+            "hour_loan_flag",
+            hour_loan_flag,
+            default=1.0
+        ) ,
+        hour_loan_flag
+    )
+
+def day_of_week_flag(day_week_flag):
+    """
+    Aplica el shrinkage correspondiente al tiempo desde el ultimo intento.
+
+    Parameters
+    ----------
+    day_week_flag : str
+        String del dia de la semana mas flag de la hora de la solicitud.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    
+    """
+
     return get_shrinkage(
-        "hour_loan_flag",
-        hour_loan_flag,
+        "day_week_flag",
+        day_week_flag,
         default=1.0
     )
+
+
+def day_hour_flag(day_hour_loan):
+    """
+    Aplica el shrinkage correspondiente a la construcción hora dia.
+
+    Parameters
+    ----------
+    day_hour_loan : int
+        Hora  y dia en la que solicita el credito.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
+    """
+    # Obtenemos el flag de la hora-dia
+    hour_loan_flag = get_var_flag("day_hour_loan", day_hour_loan, default="NORMAL")
+    return get_shrinkage(
+            "day_hour_loan_flag",
+            hour_loan_flag,
+            default=1.0
+        ) 
 
 def get_temporal_vars(created_at):
     """
@@ -614,14 +664,37 @@ def get_temporal_vars(created_at):
 
     # Obtenemos los valores base de cada una de las variables 
     hour_of_loan = created_at.dt.hour
+    week_day = created_at.dt.day_name()
+    day_hour_loan = created_at.dt.strftime("%d_%H")
     
     # Obtenemos los shrinkage de todas las variables
-    hour_loan_flag_shrinkage = hour_of_loan_flag(hour_of_loan)
+    hour_loan_flag_shrinkage, hour_loan_flag = hour_of_loan_flag(hour_of_loan)
 
+    day_week_flag= week_day + "_" + hour_loan_flag
+    day_week_flag_shrinkage = day_of_week_flag(day_week_flag)
+
+    day_hour_loan_flag_shrinkage = day_hour_flag()
 
     return {
         'hour_loan_flag_shrinkage': hour_loan_flag_shrinkage,
-        'day_week_flag_shrinkage': np.nan,
-        'day_hour_loan_flag_shrinkage': np.nan,
+        'day_week_flag_shrinkage': day_week_flag_shrinkage,
+        'day_hour_loan_flag_shrinkage': day_hour_loan_flag_shrinkage,
         'diff_minutes_flag_shrinkage': np.nan,  
     }
+
+
+def browser_fam_ver_flag_shrinkage():
+    """
+    Funcion encargada de generar las variables relacionadas con el tiempo en la que se solicitan los prestamos.
+    Parameters
+    ----------
+    created_at : pd.datetime
+        Fecha de cración de la solicitud del prestamo.
+   
+    Returns
+    -------
+    dict
+        Diccionario con las diferentes variables realacionadas con las variables temporales.
+    """
+    return 0
+
