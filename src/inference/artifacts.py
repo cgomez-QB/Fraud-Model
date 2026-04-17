@@ -11,11 +11,16 @@ import pandas as pd
 class Artifacts:
   # feature_name -> category_value -> shrinkage
   shrinkage: Dict[str, Dict[str, float]]
+
   # Modelos ML
   last_attempt_model: Optional[object] = None
   last_attempt_artifacts: Optional[Dict] = None
+
   # DataFrame con los intentos todos los intentos previos fallidos
   df_attempts: Optional[pd.DataFrame] = None
+
+  # DataFrame para la similitud entre emails
+  df_block_bad_emails: Optional[pd.DataFrame] = None
 
 
 _ARTIFACTS: Optional[Artifacts] = None
@@ -72,19 +77,33 @@ def _load_last_attempt_model():
     #   print(f"❌ Error cargando modelo last_attempt: {e}")
       return None, None
 
+
+def _load_bad_emails_blocks():
+  """Carga del DataFrame con la lista de emails y sus respectivos blockes"""
+  previous_path = _data_artifacts_dir()
+  previous_path = previous_path / "df_bad_emails.csv"
+
+  try:
+    return pd.csv_read(previous_path)
+
+  except Exception as e:
+    #   print(f"❌ Error cargando el DataFrame de bad Emails blocks: {e}")
+    return None
+
+
 def _load_dataframe_previous_attemtps():
-    """Carga el df con todos los intentos previos fallidos de todos los usuarios new"""
-    previous_path = _data_artifacts_dir()
-    previous_path = previous_path / "df_attempts.csv"
+  """Carga el df con todos los intentos previos fallidos de todos los usuarios new"""
+  previous_path = _data_artifacts_dir()
+  previous_path = previous_path / "df_attempts.csv"
 
-    # En caso de no existir el archivo csv devolvemos un None
-    if not previous_path.exists():
-        return None, None
+  # En caso de no existir el archivo csv devolvemos un None
+  try:
+    return pd.csv_read(previous_path)
 
-    # Cargamos el df con todos los intentos previos
-    df_attemtps = pd.read_csv(previous_path)
+  except Exception as e:
+    #   print(f"❌ Error cargando el DataFrame de bad Emails blocks: {e}")
+    return None
 
-    return df_attemtps
 
 def load_artifacts():
   """
@@ -127,12 +146,16 @@ def load_artifacts():
 
       # Cargamos todos los intentos previos fallidos de creditos
       df_attempts = _load_dataframe_previous_attemtps()
+
+      # Cargamos los bad emails para poder hacer la compartiva de similitud
+      df_block_bad_emails = _load_bad_emails_blocks()
       
       _ARTIFACTS = Artifacts(
           shrinkage=shrinkage,
           last_attempt_model=last_attempt_model,
           last_attempt_artifacts=last_attempt_artifacts,
-          df_attempts = df_attempts
+          df_attempts = df_attempts,
+          df_block_bad_emails = df_block_bad_emails,
       )
       
     #   print("✅ Todos los artifacts cargados correctamente")
@@ -155,6 +178,12 @@ def get_previous_attempts():
     """ Obtenemos el DataFrame con los inentos anteriores fallidos"""
     art = load_artifacts()
     return art.df_attempts
+
+
+def get_bad_emails_blocks():
+  """Obtenemos el Dataframe con los blocke de rpefijo y sufijos para calcular la similitud de emails"""
+  art = load_artifacts()
+  return art.df_block_bad_emails
 
 
 def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
@@ -207,5 +236,3 @@ def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
     shrinkage_value = shrinkage_values[flag]
 
     return shrinkage_value
-
-  
