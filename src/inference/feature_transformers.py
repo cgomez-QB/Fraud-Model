@@ -7,6 +7,7 @@ from inference.user_agent_parser import parse_user_agent
 from inference.ip_info import get_asn_org, get_city
 from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score, calculate_num_com, masked_email_match, match_2_last_numbers
 from inference.previous_attempts_transformer import transform
+from inference.emailsimilarity_transformer import transform_single
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -698,3 +699,18 @@ def browser_fam_ver_flag_shrinkage():
     """
     return 0
 
+
+def email_similarity(email):
+    """
+    Funcion encargada de calcular las similitudes con los emails marcados en la lista negra. 
+    ----------
+    email : str
+        Email del usuarios que solicita el credito.
+   
+    Returns
+    -------
+    dict
+        Diccionario con las diferentes variables realacionadas con las variables de similitud.
+    """
+
+    return transform_single(email)

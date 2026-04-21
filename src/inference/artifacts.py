@@ -84,10 +84,10 @@ def _load_bad_emails_blocks():
   previous_path = previous_path / "df_bad_emails.csv"
 
   try:
-    return pd.csv_read(previous_path)
+    return pd.read_csv(previous_path)
 
   except Exception as e:
-    #   print(f"❌ Error cargando el DataFrame de bad Emails blocks: {e}")
+    # print(f"❌ Error cargando el DataFrame de bad Emails blocks: {e}")
     return None
 
 

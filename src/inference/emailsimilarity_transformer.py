@@ -10,8 +10,8 @@ from typing import Dict, List
 import re
 from inference.artifacts import get_bad_emails_blocks
 
-K_PREFIX = 3
-K_SUFFIX = 3
+K_PREFIX = 4
+K_SUFFIX = 4
 
 """
 pd.DataFrame({
@@ -100,8 +100,8 @@ def transform_single( email: str):
     block_suffix = _block_key_suffix(email_norm, K_SUFFIX)
     
     # Obtener emails en el mismo block
-    emails_in_prefix_block = df_bad_emails_block[df_bad_emails_block['block_prefix'] == block_prefix]
-    emails_in_suffix_block = df_bad_emails_block[df_bad_emails_block['block_suffix'] == block_suffix]
+    emails_in_prefix_block = df_bad_emails_block.loc[df_bad_emails_block['block_prefix'] == block_prefix, 'email_norm'].to_list()
+    emails_in_suffix_block = df_bad_emails_block.loc[df_bad_emails_block['block_suffix'] == block_suffix, 'email_norm'].to_list()
     
     # Calcular features PREFIX
     features_prefix = _calculate_block_features(email_norm, emails_in_prefix_block)
