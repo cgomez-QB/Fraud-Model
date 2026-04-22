@@ -4,10 +4,13 @@ import numpy as np
 from inference.artifacts import get_shrinkage, get_var_flag, get_last_attempt_shrinkage
 from inference.binning import *
 from inference.user_agent_parser import parse_user_agent
-from inference.ip_info import get_asn_org, get_city
+from inference.ip_info import get_asn_org, get_city, get_lat, get_lon
+
 from inference.trustfull_platform_transformer import calculate_num_prof_net_tools, calculate_digital_score, calculate_num_com, masked_email_match, match_2_last_numbers
 from inference.previous_attempts_transformer import transform
 from inference.emailsimilarity_transformer import transform_single
+from inference.geo_consistency_score import calculate_geo_consistency_score
+
 
 def bank_name_shrinkage(bank_name) :
     """
@@ -123,7 +126,7 @@ def ip_asn_flag_shrinkage(ip):
     asn_org = get_asn_org(ip)
 
     ip_asn_flag = get_var_flag("ip_asn_org", asn_org, default="NORMAL")
-    
+
     return get_shrinkage(
         "ip_asn_flag",
         ip_asn_flag,
@@ -562,7 +565,6 @@ def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     previous_attempts = 1 if num_attempts > 0 else 0
     req_ip = dct_result['req_ip']
 
-    print('req_ip', req_ip)
     # Obtenemos los valores de los tramos y su respectivo shrinkage
     tramos_num_attempts_shrinkage = tramo_num_attempts(num_attempts)
     tramo_days_last_attempt_shrinkage = tramo_days_last_attempt(diff_days_last_attempt) 
@@ -723,3 +725,29 @@ def email_similarity(email):
     """
 
     return transform_single(email)
+
+
+def get_geo_consistency_score(ip, city_name):
+    """
+    Aplica el shrinkage correspondiente al flag de ASN de la IP del usuario.
+
+    Parameters
+    ----------
+    ip_asn_flag : str
+        Flag asociado al ASN de la IP.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al flag de ASN.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
+    """
+    
+    # Calculamos la latitud y longitud de la ip desde la cual se realzia la solicitud de credito
+    ip_lat = get_lat(ip)
+    ip_lon = get_lon(ip)
+
+    # Calculamos el score de distancia entre la ciudad de residencia y el origen de la ip
+    score = calculate_geo_consistency_score(city_name, ip_lat, ip_lon)
+    
+    return score

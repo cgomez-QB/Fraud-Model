@@ -80,7 +80,7 @@ def load_orig_city():
     # Para el ahorro de memoria eliminamos todas las variables temporales auxiliares creadas
     del geo_all, geo_ascii, geo_name, geonames
 
-    return orig_city_info(df_geoname = geo_spain)
+    return orig_city_info(df_geonames = geo_spain)
 
 
 def get_geoname_info():
@@ -161,6 +161,7 @@ def haversine_np(lat1, lon1, lat2, lon2):
 
     return R * c
 
+    
 def consistency_score(dist_km, tau=100.1518898):
     """
     Calcula un score de confianza basado en la proximidad geográfica mediante
@@ -186,7 +187,7 @@ def consistency_score(dist_km, tau=100.1518898):
     return score
 
 
-def get_geo_consistency_score(city_name, lat_ip, lon_ip):
+def calculate_geo_consistency_score(city_name, lat_ip, lon_ip):
     """
     Calcula un score de consistencia geográfica aplicando un decaimiento exponencial 
     sobre la distancia entre la ciudad de registro y la ubicación de la IP. 
@@ -214,12 +215,15 @@ def get_geo_consistency_score(city_name, lat_ip, lon_ip):
     # Obtenemos la lista de ciudades validas en el territorio español
     lst_valid_cities = df['name_norm'].unique().tolist()
 
+    # Normalizamos la direccion del usuario
+    norm_city_name = normalize_text(city_name)
+
     # Encotnramos la ciudad valida mas similar
-    closest = find_closest_city(city_name, lst_valid_cities)
+    closest = find_closest_city(norm_city_name, lst_valid_cities)
 
     # Obtenemos la latitud y longitud del usuario 
-    lat_user = df.loc[df['name_norm'] == closest,['lat']]
-    lon_user = df.loc[df['name_norm'] == closest,['lon']]
+    lat_user = df.loc[df['name_norm'] == closest,'lat'].iloc[0]
+    lon_user = df.loc[df['name_norm'] == closest,'lon'].iloc[0]
 
     #  distancia usando Haversine (dist_km)
     dist_km = haversine_np(lat_ip, lon_ip, lat_user, lon_user)
