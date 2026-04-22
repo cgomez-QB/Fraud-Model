@@ -121,7 +121,9 @@ def ip_asn_flag_shrinkage(ip):
     """
 
     asn_org = get_asn_org(ip)
+
     ip_asn_flag = get_var_flag("ip_asn_org", asn_org, default="NORMAL")
+    
     return get_shrinkage(
         "ip_asn_flag",
         ip_asn_flag,
@@ -602,6 +604,7 @@ def hour_of_loan_flag(hour_of_loan):
         hour_loan_flag
     )
 
+
 def day_of_week_flag(day_week_flag):
     """
     Aplica el shrinkage correspondiente al tiempo desde el ultimo intento.
@@ -649,6 +652,7 @@ def day_hour_flag(day_hour_loan):
             default=1.0
         ) 
 
+
 def get_temporal_vars(created_at):
     """
     Funcion encargada de generar las variables relacionadas con el tiempo en la que se solicitan los prestamos.
@@ -684,10 +688,9 @@ def get_temporal_vars(created_at):
     }
 
 
-def browser_fam_ver_flag_shrinkage():
+def device_browser_ver_flag(device_browser_ver):
     """
-    Funcion encargada de generar las variables relacionadas con el tiempo en la que se solicitan los prestamos.
-    Parameters
+    Funcion encargada de generar el flag para el dispositivo el buscador y su version para encontrar posibles patrones de fraude
     ----------
     created_at : pd.datetime
         Fecha de cración de la solicitud del prestamo.
@@ -697,7 +700,13 @@ def browser_fam_ver_flag_shrinkage():
     dict
         Diccionario con las diferentes variables realacionadas con las variables temporales.
     """
-    return 0
+
+    device_browser_ver_flag = get_var_flag("device_browser_ver", device_browser_ver, default="NORMAL")
+    return get_shrinkage(
+            "device_browser_ver_flag",
+            device_browser_ver_flag,
+            default=1.0
+        ) 
 
 
 def email_similarity(email):

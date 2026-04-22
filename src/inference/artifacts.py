@@ -136,6 +136,8 @@ def load_artifacts():
           "day_week_flag": base / "day_week_flag_shrinkage.csv",
           "day_hour_loan": base / "day_hour_loan_flag.csv",
           "day_hour_loan_flag": base / "day_hour_loan_flag_shrinkage.csv",
+          "device_browser_ver": base / "device_browser_ver.csv",
+          "device_browser_ver_flag": base / "device_browser_ver_flag.csv",
       }
       shrinkage: Dict[str, Dict[str, float]] = {
           feature: _load_csv_map(path) for feature, path in files.items()

@@ -54,7 +54,23 @@ def get_asn_org(ip):
 
 def get_city(ip):
     """
-    Funcion encargada de obtener la ciudad de la ip del usuari o.
+    Funcion encargada de obtener la ciudad de la ip del usuario.
     """
     ip_info = get_info_geoip()
     return ip_info.reader_city.city(ip).subdivisions.most_specific.name
+
+
+def get_lat(ip):
+    """
+    Funcion encargada de obtener la latitud de la ip.
+    """
+    ip_info = get_info_geoip()
+    return ip_info.reader_city.city(ip).location.latitude
+
+
+def get_lon(ip):
+    """
+    Funcion encargada de obtener la longitud de la ip.
+    """
+    ip_info = get_info_geoip()
+    return ip_info.reader_city.city(ip).location.longitude
