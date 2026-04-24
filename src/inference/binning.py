@@ -163,3 +163,46 @@ def get_req_ip_bin(req_ip):
     ]
      
     return np.select(lst_cond, lst_choices, '0 req ip').item()
+
+
+def get_tramo_fastloans_n_entidades_distintas(n_categorias):
+
+    # Lista de las condiciones
+    lst_cond = [
+        n_categorias <=1,
+        n_categorias == 2,
+        3 <= n_categorias <= 21,
+        n_categorias > 22
+    ]
+
+    # Lista de variables a escoger
+    lst_choices = [
+        "0-1 entidades diferentes",
+        "2 entidades diferentes",
+        "3-21 entidades diferentes",
+        "más de 21 entidades diferentes",
+    ]
+     
+    return np.select(lst_cond, lst_choices, "N/A").item()
+
+def get_tramo_n_categorias_distintas(n_categorias):
+
+    # Lista de las condiciones
+    lst_cond = [
+       1 <= n_categorias <= 16,
+       17 <= n_categorias <= 19,
+       20 <= n_categorias <= 22,
+       23 <= n_categorias <= 24,
+       n_categorias > 24,
+    ]
+
+    # Lista de variables a escoger
+    lst_choices = [
+        "(0.999, 16.0]",
+        "(16.0, 19.0]",
+        "(19.0, 22.0]",
+        "(22.0, 24.0]",
+        "(24.0, 33.0]",
+    ]
+     
+    return np.select(lst_cond, lst_choices, "N/A").item()

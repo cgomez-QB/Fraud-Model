@@ -10,6 +10,7 @@ from inference.trustfull_platform_transformer import calculate_num_prof_net_tool
 from inference.previous_attempts_transformer import transform
 from inference.emailsimilarity_transformer import transform_single
 from inference.geo_consistency_score import calculate_geo_consistency_score
+from inference.card_var_transformer import get_fastloan_vars, get_bizzum_vars
 
 
 def bank_name_shrinkage(bank_name) :
@@ -729,7 +730,8 @@ def email_similarity(email):
 
 def get_geo_consistency_score(ip, city_name):
     """
-    Aplica el shrinkage correspondiente al flag de ASN de la IP del usuario.
+    Funcion encargada de llamar todos los calculos con respecto al score de distancia entre la direccion del usuarios y la 
+    direccion de ip.
 
     Parameters
     ----------
@@ -751,3 +753,120 @@ def get_geo_consistency_score(ip, city_name):
     score = calculate_geo_consistency_score(city_name, ip_lat, ip_lon)
     
     return score
+
+
+def tramo_n_categorias_distintas(n_categorias):
+    """
+    Aplica el shrinkage correspondiente al tramo segun el número de categorias diferentes de movimientos de tarjeta.
+
+    Parameters
+    ----------
+    n_categorias : int
+        Número de categorias diferenes de movimientos de tarjeta.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo de numero de categorias.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
+    """
+
+    tramo_n_categorias_distintas = get_tramo_n_categorias_distintas(n_categorias)
+
+    return get_shrinkage(
+        "tramo_n_categorias_distintas",
+        tramo_n_categorias_distintas,
+        default=1,
+    )
+
+
+def tramo_fastloans_n_entidades_distintas(fastloans_n_entidades_distintas):
+    """
+    Aplica el shrinkage correspondiente al tramo segun el número de categorias diferentes de movimientos de tarjeta.
+
+    Parameters
+    ----------
+    fastloans_n_entidades_distintas : int
+        Número de categorias diferenes de movimientos de tarjeta.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo de numero de categorias.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
+    """
+
+    tramo_fastloans_n_entidades_distintas = get_tramo_fastloans_n_entidades_distintas(fastloans_n_entidades_distintas)
+
+    return get_shrinkage(
+        "tramo_fastloans_n_entidades_distintas",
+        tramo_fastloans_n_entidades_distintas,
+        default=1,
+    )
+
+
+def fastloan_vars():
+    """
+    Funcion encargada de llamar a todos los calculos de variables relacionadas con
+
+    Parameters
+    ----------
+    fastloans_n_entidades_distintas : int
+        Número de categorias diferenes de movimientos de tarjeta.
+
+    Returns
+    -------
+    float
+        Valor de shrinkage asociado al tramo de numero de categorias.
+        Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).`
+    """
+
+    # Variables de fast loans
+
+    fl_min_diff_hours = np.nan
+    amount_vs_fl_conc_7d = np.nan()
+    ratio_fl_concentration = np.nan ()
+
+    
+    fl_min_diff_hours, amount_vs_fl_conc_7d, ratio_fl_concentration = get_fastloan_vars()
+
+    return fl_min_diff_hours, amount_vs_fl_conc_7d, ratio_fl_concentration
+
+
+def bizzum_vars(n_bizzums, n_categorias_distintas, gambling_por_mes, total_transacciones, n_meses_actividad, salary_existe):
+    """
+    Wrapper de conveniencia para la extracción de métricas de Bizzum.
+
+    Esta función actúa como interfaz principal para el cálculo de variables de 
+    comportamiento, delegando la lógica matemática a `get_bizzum_vars`.
+
+    Parameters
+    ----------
+    n_bizzums : int
+        Número de Bizzums.
+    n_categorias_distintas : int
+        Número de categorías de gasto.
+    gambling_por_mes : float
+        Transacciones de gambling al mes.
+    total_transacciones : int
+        Total de transacciones históricas.
+    n_meses_actividad : int
+        Meses desde la primera transacción.
+    salary_existe : int
+        Presencia de nómina (1: Sí, 0: No).
+
+    Returns
+    -------
+    tuple
+        Contiene (bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk).
+    """
+    bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk = 0, 0, 0, 0
+    bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk = get_bizzum_vars(
+        n_bizzums, n_categorias_distintas,
+        gambling_por_mes,
+        total_transacciones,
+        n_meses_actividad, salary_existe
+    )
+    
+
+    return bizzum_ratio, bizzum_intensity_velocity, mule_purity_check,bizzum_no_salary_risk
