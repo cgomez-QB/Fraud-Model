@@ -32,7 +32,7 @@ def get_tramos_days(days):
         '31-35 días',
         '36-43 días'
     ]
-    return np.select(lst_cond, lst_choice, 'N/A')    
+    return np.select(lst_cond, lst_choice, 'N/A').item()    
 
 def get_tramos_amount(amount):
     """
@@ -65,7 +65,7 @@ def get_tramos_amount(amount):
         "200-300€"
     ]
 
-    return np.select(lst_cond, lst_choice, 'N/A')
+    return np.select(lst_cond, lst_choice, 'N/A').item()
 
 def get_tramo_professional_network_tool(num_platf_net):
     

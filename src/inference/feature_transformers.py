@@ -11,6 +11,7 @@ from inference.previous_attempts_transformer import transform
 from inference.emailsimilarity_transformer import transform_single
 from inference.geo_consistency_score import calculate_geo_consistency_score
 from inference.card_var_transformer import get_fastloan_vars, get_bizzum_vars
+from inference.bank_name_normalizer import normalize_bank_name
 
 
 def bank_name_shrinkage(bank_name) :
@@ -28,10 +29,11 @@ def bank_name_shrinkage(bank_name) :
         Valor de shrinkage asociado al banco.  
         Si el banco no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
+    norm_bank_name = normalize_bank_name(bank_name)
 
     return get_shrinkage(
         "bank_name",
-        bank_name, 
+        norm_bank_name, 
         default=1.0
     )
 
@@ -75,10 +77,10 @@ def tramo_days_shrinkage(days):
         Valor de shrinkage asociado al tramo de días de devolución de prestamos.  
         Si la categoría no existe en los artefactos, se devuelve el valor por defecto (1.0).
     """
-
     tramo_days = get_tramos_days(days)
+
     return get_shrinkage(
-        "tramos_days",
+        "tramo_days",
         tramo_days,
         default=1.0
     )
@@ -101,9 +103,10 @@ def tramo_amount_2_shrinkage(amount):
     """
 
     tramo_amount_2 = get_tramos_amount(amount)
+
     return get_shrinkage(
         "tramo_amount_2",
-        tramo_amount_2,
+        str(tramo_amount_2),
         default=1.0
     )
 
@@ -272,7 +275,7 @@ def promo_code(promo_code_id):
         valor binario 1 si el usuario ha utilizado un código de promoción, 0 en caso contrario.
     """
 
-    if promo_code_id is not None:
+    if pd.notna(promo_code_id):
         return 1
     else: 
         return 0
@@ -870,3 +873,4 @@ def bizzum_vars(n_bizzums, n_categorias_distintas, gambling_por_mes, total_trans
     
 
     return bizzum_ratio, bizzum_intensity_velocity, mule_purity_check,bizzum_no_salary_risk
+
