@@ -6,56 +6,33 @@ import os
 from inference.artifacts import get_previous_attempts
 
 
-def get_connection():
-    """
-    Establece y devuelve una conexión a la base de datos MySQL utilizando las variables de entorno definidas.
+def _normalize_dni(dni):
+  if pd.isna(dni) or dni is None:
+      return ""
+  dni = str(dni).strip()
+  dni = ''.join(c for c in dni if c.isalnum())
+  return dni.upper()
 
-    Returns
-    -------
-    mysql.connector.connection.MySQLConnection
-        Objeto de conexión activo a la base de datos MySQL.
-    """
-    return sq.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME"),
-        use_pure=True,   
-    )
+  
+def _normalize_email(email):
+  if pd.isna(email) or email is None:
+      return ""
+  return str(email).strip().lower()
 
-def get_querys(lst_query):
-    """
-    Función encargada de realizar las querys y devolver los datos de estas consultas en formato de DataFrame.
-    
-    Parameters
-    ----------
-    lst_query (list): Lista con todas las querys que vamos a realizar.
 
-    Returns
-    -------
-    pandas.DataFrame: DataFrame con los resultados de las consultas.
-    """
-    print("Comenzamos a hacer las consultas")
-    # Lista con todos los df
-    lst_df = []
-    # Establecemos la conexion
-    conn = get_connection()
-    # Creamos el cursor para ejecutar las queries
-    cur = conn.cursor()
+def _normalize_cell_phone(phone):
+  if pd.isna(phone) or phone is None:
+      return ""
+  phone = str(phone).strip()
+  phone = ''.join(c for c in phone if c.isdigit())
+  if phone.startswith('0034'):
+      phone = phone[4:]
+  elif phone.startswith('34'):
+      phone = phone[2:]
+  if phone.startswith('0') and len(phone) == 10:
+      phone = phone[1:]
+  return phone
 
-    for query in lst_query:
-        cur.execute(query)
-        # Guardamos el resultado
-        table_result = cur.fetchall()
-        column_names = [desc[0] for desc in cur.description] # Guardamos los nombres de las columnas
-        # Creamos un df a partir del resultado
-        lst_df.append(pd.DataFrame(table_result, columns=column_names))
-
-    cur.close()
-    conn.close()
-
-    print("✅ Consultas finalizadas")
-    return lst_df
 
 def get_df_attempts(dni, email, cell_phone, created_at = pd.to_datetime(date.today(), errors="coerce")):
     """
@@ -82,9 +59,14 @@ def get_df_attempts(dni, email, cell_phone, created_at = pd.to_datetime(date.tod
     # Cargamos los datos de todos los intentos previos fallidos. 
     df_attempts = get_previous_attempts()
 
-    for col in ['dni', 'email', 'cell_phone']:
-        mask = df_attempts[col].astype(str).str.contains('deleted', na=False)
-        df_attempts.loc[mask, col] = df_attempts.loc[mask, col].astype(str).apply(lambda x: x[26:])
+    # Normalizacion de los datos
+    for col in [dni, email, cell_phone]:
+        if 'deleted' in col:
+            col = col[26:]
+
+    dni = _normalize_dni(dni)
+    email = _normalize_email(email)
+    # cell_phone = _normalize_cell_phone(cell_phone)
 
     df_attempts["created_at"] = pd.to_datetime(df_attempts["created_at"], errors="coerce")
 
@@ -162,6 +144,7 @@ def transform(dni, email, cell_phone, ip_address, created_at):
     num_attempts = 0
     diff_days_last_attempt = np.nan
     last_attempt = 0
+    created_at = pd.to_datetime(created_at)
 
     # Obtenemos los intentos fallidos previos
     df_attempts = get_df_attempts(dni, email, cell_phone, created_at)

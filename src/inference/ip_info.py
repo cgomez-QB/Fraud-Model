@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Optional
 from pathlib import Path
 import geoip2.database
+from geoip2.errors import AddressNotFoundError  # ← NUEVO IMPORT
 
 @dataclass(frozen=True)
 class IpInfo:
-
     reader_city: Optional[geoip2.database.Reader]
     reader_asn: Optional[geoip2.database.Reader]
 
@@ -13,23 +13,14 @@ _IP_INFO: Optional[IpInfo] = None
 
 def load_databases():
     """
-    Función encargada de cargar las bases de datos de la la libreria geoip2.
-
-    Parameters
-    ----------
-        - None: No se necesitan parametros.
-
-    Returns
-    -------
-        IpInfo: Dataclass que contiene las BBDD para hacer consultas sobre la ciudad origeny el ASN de la ip del usuario.
+    Función encargada de cargar las bases de datos de la libreria geoip2.
     """
-
     db_city_path = Path(__file__).resolve().parent.parent / "data/datos/GeoLite2-City.mmdb"
     db_asn_path = Path(__file__).resolve().parent.parent / "data/datos/GeoLite2-ASN.mmdb"
 
     reader_city = geoip2.database.Reader(db_city_path)
     reader_asn = geoip2.database.Reader(db_asn_path)
-    return IpInfo(reader_city = reader_city, reader_asn = reader_asn)
+    return IpInfo(reader_city=reader_city, reader_asn=reader_asn)
 
 
 def get_info_geoip():
@@ -44,33 +35,103 @@ def get_info_geoip():
     return _IP_INFO
 
 
-def get_asn_org(ip):
+def get_asn_org(ip: str, default: str = "UNKNOWN") -> str:
     """
-    Funcion encargada de obtener el ASN de la ip del usuario.
+    Obtiene el ASN de la IP del usuario.
+    
+    Parameters
+    ----------
+    ip : str
+        Dirección IP a consultar.
+    default : str, optional
+        Valor a retornar si la IP no se encuentra en la base de datos.
+    
+    Returns
+    -------
+    str
+        Nombre de la organización ASN o el valor por defecto.
     """
-    ip_info = get_info_geoip()
-    return ip_info.reader_asn.asn(ip).autonomous_system_organization
+    try:
+        ip_info = get_info_geoip()
+        return ip_info.reader_asn.asn(ip).autonomous_system_organization
+    except AddressNotFoundError:
+        return default
+    except Exception as e:
+        # Log o manejo de otros errores (opcional)
+        return default
 
 
-def get_city(ip):
+def get_city(ip: str, default: str = "UNKNOWN") -> str:
     """
-    Funcion encargada de obtener la ciudad de la ip del usuario.
+    Obtiene la ciudad de la IP del usuario.
+    
+    Parameters
+    ----------
+    ip : str
+        Dirección IP a consultar.
+    default : str, optional
+        Valor a retornar si la IP no se encuentra en la base de datos.
+    
+    Returns
+    -------
+    str
+        Nombre de la ciudad o el valor por defecto.
     """
-    ip_info = get_info_geoip()
-    return ip_info.reader_city.city(ip).subdivisions.most_specific.name
+    try:
+        ip_info = get_info_geoip()
+        return ip_info.reader_city.city(ip).subdivisions.most_specific.name
+    except (AddressNotFoundError, AttributeError):
+        # AttributeError puede ocurrir si subdivisions.most_specific es None
+        return default
+    except Exception as e:
+        return default
 
 
-def get_lat(ip):
+def get_lat(ip: str, default: float = 0.0) -> float:
     """
-    Funcion encargada de obtener la latitud de la ip.
+    Obtiene la latitud de la IP.
+    
+    Parameters
+    ----------
+    ip : str
+        Dirección IP a consultar.
+    default : float, optional
+        Valor a retornar si la IP no se encuentra en la base de datos.
+    
+    Returns
+    -------
+    float
+        Latitud o el valor por defecto.
     """
-    ip_info = get_info_geoip()
-    return ip_info.reader_city.city(ip).location.latitude
+    try:
+        ip_info = get_info_geoip()
+        return ip_info.reader_city.city(ip).location.latitude
+    except (AddressNotFoundError, AttributeError):
+        return default
+    except Exception as e:
+        return default
 
 
-def get_lon(ip):
+def get_lon(ip: str, default: float = 0.0) -> float:
     """
-    Funcion encargada de obtener la longitud de la ip.
+    Obtiene la longitud de la IP.
+    
+    Parameters
+    ----------
+    ip : str
+        Dirección IP a consultar.
+    default : float, optional
+        Valor a retornar si la IP no se encuentra en la base de datos.
+    
+    Returns
+    -------
+    float
+        Longitud o el valor por defecto.
     """
-    ip_info = get_info_geoip()
-    return ip_info.reader_city.city(ip).location.longitude
+    try:
+        ip_info = get_info_geoip()
+        return ip_info.reader_city.city(ip).location.longitude
+    except (AddressNotFoundError, AttributeError):
+        return default
+    except Exception as e:
+        return default

@@ -7,6 +7,18 @@ from typing import Dict, Optional
 import numpy as np
 import pandas as pd
 
+CUTS_10 = [
+  0.24004863,
+  0.31109679,
+  0.40346706,
+  0.46557814,
+  0.50930369,
+  0.60798837,
+  0.62751055, 
+  0.62751055, 
+  0.62751055
+]
+
 @dataclass(frozen=True)
 class Artifacts:
   # feature_name -> category_value -> shrinkage
@@ -98,7 +110,7 @@ def _load_dataframe_previous_attemtps():
 
   # En caso de no existir el archivo csv devolvemos un None
   try:
-    return pd.csv_read(previous_path)
+    return pd.read_csv(previous_path)
 
   except Exception as e:
     #   print(f"❌ Error cargando el DataFrame de bad Emails blocks: {e}")
@@ -223,20 +235,11 @@ def get_last_attempt_shrinkage(last_attempt_minutes, previous_attempts):
     prob = art.last_attempt_model.predict_proba(X_input)[0, 1]
 
     # Asignar flag según umbrales
-    thresholds = art.last_attempt_artifacts['thresholds']
-    q1, q2, q3 = thresholds['q1'], thresholds['q2'], thresholds['q3']
-
-    if prob <= q1:
-        flag = "LOW_DR"
-    elif prob <= q2:
-        flag = "LOW_NORMAL_DR"
-    elif prob <= q3:
-        flag = "HIGH_NORMAL_DR"
-    else:
-        flag = "HIGH_DR"
+    flag = np.digitize(prob, CUTS_10) + 1
+    flag_key = str(float(flag)) # Transformamos a tipo string
 
     # Obtener valor de shrinkage para ese flag
     shrinkage_values = art.shrinkage.get('last_attempt', {})
-    shrinkage_value = shrinkage_values[flag]
+    shrinkage_value = shrinkage_values[flag_key]
 
     return shrinkage_value

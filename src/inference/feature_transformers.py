@@ -576,7 +576,7 @@ def variables_attempts(dni, email, cell_phone, ip_address, created_at):
     req_ip_bin_shrinkage = req_ip_bin(req_ip)
 
     return {
-        'tramos_num_attempts_shrinkage': tramos_num_attempts_shrinkage,
+        'tramo_num_attempts_shrinkage': tramos_num_attempts_shrinkage,
         'tramo_days_last_attempt_shrinkage' : tramo_days_last_attempt_shrinkage,
         'last_attempt_prob_xgb_oof_flag_shrinkage': last_attempt_prob_xgb_oof_flag_shrinkage,
         'req_ip_bin_shrinkage': req_ip_bin_shrinkage
@@ -673,10 +673,14 @@ def get_temporal_vars(created_at):
         Diccionario con las diferentes variables realacionadas con las variables temporales.
     """
 
+    if isinstance(created_at, str):
+      created_at = pd.to_datetime(created_at)
+
     # Obtenemos los valores base de cada una de las variables 
-    hour_of_loan = created_at.dt.hour
-    week_day = created_at.dt.day_name()
-    day_hour_loan = created_at.dt.strftime("%d_%H")
+    hour_of_loan = created_at.hour
+    hour_of_loan = str(hour_of_loan) # Transformamos a tipo str
+    week_day = created_at.day_name()
+    day_hour_loan = created_at.strftime("%d_%H")
     
     # Obtenemos los shrinkage de todas las variables
     hour_loan_flag_shrinkage, hour_loan_flag = hour_of_loan_flag(hour_of_loan)
@@ -684,7 +688,9 @@ def get_temporal_vars(created_at):
     day_week_flag= week_day + "_" + hour_loan_flag
     day_week_flag_shrinkage = day_of_week_flag(day_week_flag)
 
-    day_hour_loan_flag_shrinkage = day_hour_flag()
+    day_hour_loan_flag_shrinkage = day_hour_flag(day_hour_loan)
+
+    print(hour_of_loan, hour_loan_flag, hour_loan_flag_shrinkage)
 
     return {
         'hour_loan_flag_shrinkage': hour_loan_flag_shrinkage,
