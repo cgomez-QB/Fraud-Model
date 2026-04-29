@@ -33,10 +33,10 @@ def calcular_concentracion_fastloans(fastloans_n_meses_activo, created_at):
         try:
             solicitudes = ast.literal_eval(solicitudes)
         except:
-            return pd.Series([0, 0, 0])
+            return 0, 0
     
     if not solicitudes or not isinstance(solicitudes, list):
-        return pd.Series([0, 0, 0])
+        return 0, 0
     
     # Convertir todas las fechas de la lista a datetime
     fechas_previas = pd.to_datetime(solicitudes)

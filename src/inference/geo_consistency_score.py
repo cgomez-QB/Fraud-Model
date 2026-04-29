@@ -221,6 +221,8 @@ def calculate_geo_consistency_score(city_name, lat_ip, lon_ip):
     # Encotnramos la ciudad valida mas similar
     closest = find_closest_city(norm_city_name, lst_valid_cities)
 
+    if closest is None:
+        closest = 'madrid'
     # Obtenemos la latitud y longitud del usuario 
     lat_user = df.loc[df['name_norm'] == closest,'lat'].iloc[0]
     lon_user = df.loc[df['name_norm'] == closest,'lon'].iloc[0]

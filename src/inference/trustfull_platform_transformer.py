@@ -102,13 +102,14 @@ def calculate_digital_score(df):
     
     df["digital_presence_score"] = (
         df[digi.lst_cols_trust]
-        .fillna(0)
+        # .fillna(0)
         .mul(weights, axis=1)
         .sum(axis=1)
     )
 
     
-    return df["digital_presence_score"].iloc[0]
+    # return df["digital_presence_score"].iloc[0]
+    return df["digital_presence_score"]
 
 def calculate_num_platforms(df, lst_cols, var_name):
     """
@@ -137,9 +138,9 @@ def calculate_num_platforms(df, lst_cols, var_name):
 
     df[var_name] = (
         df[lst_cols]
-        .fillna(0)
+        # .fillna(0)
         .astype("int8")
-        .sum(axis=1)
+        .sum()
     )
 
     return df
@@ -170,7 +171,7 @@ def calculate_num_prof_net_tools(df):
 
     df = calculate_num_platforms(df, digi.lst_cols_network_tools, "num_professional_network_tools")
 
-    return df["num_professional_network_tools"].iloc[0].astype(float)
+    return df["num_professional_network_tools"]
 
 def calculate_num_com(df):
     """
@@ -196,13 +197,9 @@ def calculate_num_com(df):
     # Cargamos los datos para calcular el digital score
     digi = load_digital_score_data()
 
-    print(digi.lst_cols_comercial)
-    print(type(digi.lst_cols_comercial))
-
-
     df = calculate_num_platforms(df, digi.lst_cols_comercial, "num_plataformas_comercial")
 
-    return df["num_plataformas_comercial"].iloc[0].astype(float)
+    return df["num_plataformas_comercial"]
 
 def masked_email_match(real_email, masked_email):
     """

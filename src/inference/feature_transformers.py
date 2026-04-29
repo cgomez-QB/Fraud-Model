@@ -690,8 +690,6 @@ def get_temporal_vars(created_at):
 
     day_hour_loan_flag_shrinkage = day_hour_flag(day_hour_loan)
 
-    print(hour_of_loan, hour_loan_flag, hour_loan_flag_shrinkage)
-
     return {
         'hour_loan_flag_shrinkage': hour_loan_flag_shrinkage,
         'day_week_flag_shrinkage': day_week_flag_shrinkage,
@@ -700,18 +698,21 @@ def get_temporal_vars(created_at):
     }
 
 
-def device_browser_ver_flag(device_browser_ver):
+def device_browser_ver_flag(user_agent):
     """
     Funcion encargada de generar el flag para el dispositivo el buscador y su version para encontrar posibles patrones de fraude
     ----------
-    created_at : pd.datetime
-        Fecha de cración de la solicitud del prestamo.
+    user_agent : str
+        Cadena de texto enviada por el buscador para ser identificados en sitios web.
    
     Returns
     -------
     dict
         Diccionario con las diferentes variables realacionadas con las variables temporales.
     """
+    dct_parsed = parse_user_agent(user_agent)
+
+    device_browser_ver = dct_parsed['device'] + " " +  dct_parsed['browser_family'] + " " + dct_parsed['browser_version']
 
     device_browser_ver_flag = get_var_flag("device_browser_ver", device_browser_ver, default="NORMAL")
     return get_shrinkage(
@@ -814,7 +815,7 @@ def tramo_fastloans_n_entidades_distintas(fastloans_n_entidades_distintas):
     )
 
 
-def fastloan_vars():
+def fastloan_vars(df):
     """
     Funcion encargada de llamar a todos los calculos de variables relacionadas con
 
@@ -833,16 +834,32 @@ def fastloan_vars():
     # Variables de fast loans
 
     fl_min_diff_hours = np.nan
-    amount_vs_fl_conc_7d = np.nan()
-    ratio_fl_concentration = np.nan ()
+    amount_vs_fl_conc_7d = np.nan
+    ratio_fl_concentration = np.nan
+
+    fastloans_n_meses_activo = df['fastloans_n_meses_activo']
+    fastloans_n_entidades_distintas = df['fastloans_n_entidades_distintas']
+    n_meses_actividad = df['n_meses_actividad']
+    created_at = df['created_at']
+    amount = df['amount']
 
     
-    fl_min_diff_hours, amount_vs_fl_conc_7d, ratio_fl_concentration = get_fastloan_vars()
+    fl_min_diff_hours, amount_vs_fl_conc_7d, ratio_fl_concentration = get_fastloan_vars(
+        fastloans_n_meses_activo,
+        fastloans_n_entidades_distintas,
+        n_meses_actividad,
+        created_at,
+        amount
+    )
+   
+    return {
+        'fl_min_diff_hours': fl_min_diff_hours, 
+        'amount_vs_fl_conc_7d':amount_vs_fl_conc_7d, 
+        'ratio_fl_concentration':ratio_fl_concentration
+    }
 
-    return fl_min_diff_hours, amount_vs_fl_conc_7d, ratio_fl_concentration
 
-
-def bizzum_vars(n_bizzums, n_categorias_distintas, gambling_por_mes, total_transacciones, n_meses_actividad, salary_existe):
+def bizzum_vars(df):
     """
     Wrapper de conveniencia para la extracción de métricas de Bizzum.
 
@@ -869,6 +886,16 @@ def bizzum_vars(n_bizzums, n_categorias_distintas, gambling_por_mes, total_trans
     tuple
         Contiene (bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk).
     """
+
+    # Obtenemos las variables 
+
+    n_bizzums = df['n_bizzums']
+    n_categorias_distintas = df['n_categorias_distintas']
+    gambling_por_mes = df['gambling_por_mes']
+    total_transacciones = df['total_transacciones']
+    n_meses_actividad = df['n_meses_actividad']
+    salary_existe = df['salary_existe']
+
     bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk = 0, 0, 0, 0
     bizzum_ratio, bizzum_intensity_velocity, mule_purity_check, bizzum_no_salary_risk = get_bizzum_vars(
         n_bizzums, n_categorias_distintas,
@@ -876,7 +903,10 @@ def bizzum_vars(n_bizzums, n_categorias_distintas, gambling_por_mes, total_trans
         total_transacciones,
         n_meses_actividad, salary_existe
     )
-    
 
-    return bizzum_ratio, bizzum_intensity_velocity, mule_purity_check,bizzum_no_salary_risk
-
+    return {
+        'bizzum_ratio': bizzum_ratio, 
+        'bizzum_intensity_velocity':bizzum_intensity_velocity, 
+        'mule_purity_check': mule_purity_check,
+        'bizzum_no_salary_risk': bizzum_no_salary_risk
+    }

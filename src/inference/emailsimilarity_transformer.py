@@ -141,8 +141,8 @@ def _calculate_block_features( email_norm: str, block_emails: List[str]) -> Dict
     cnt_le_1 = 0
     
     for bad_email in block_emails:
-        if bad_email == email_norm:
-            continue
+        # if bad_email == email_norm:
+        #     continue
             
         dist = lv.distance(email_norm, bad_email)
         
