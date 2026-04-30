@@ -910,3 +910,38 @@ def bizzum_vars(df):
         'mule_purity_check': mule_purity_check,
         'bizzum_no_salary_risk': bizzum_no_salary_risk
     }
+
+
+def same_name_phone_database(phone_first_name, db_first_name):
+    """
+    Funcion encargada de devolver si el nombre asociado el numero de telefono segun trustfull coincide con el que
+    el usuario indica en el proceso de registro.
+
+    Parameters
+    ----------
+    phone_first_name : str
+        Nombre asociado al num de teléfono segun Trustfull
+    db_first_name : str
+        Nombre del usuarios facilitado durante el proceso de registro. 
+
+    Returns
+    -------
+    int
+        Devuelve 1 para cuando coinciden 0 para cuando no .
+    """
+    # Normalizamos los dos nombres
+    if isinstance(phone_first_name, str):
+        name1 = phone_first_name.strip().lower()
+
+    if isinstance(db_first_name, str):
+        name2 = db_first_name.strip().lower()
+
+    # Normalizamos 
+    if name1 in name2:
+        return 1
+    elif name2 in name1:
+        return 1
+    return 0 
+    
+
+    
