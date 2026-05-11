@@ -277,7 +277,3 @@ def match_2_last_numbers(cell_phone, partials_list_phone ):
         if phone[-2:] == cell_phone[-2:]:
             return 1
     return 0
-
-
-
-
